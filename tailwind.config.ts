@@ -50,6 +50,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        bloom: {
+          pink: "hsl(var(--bloom-pink))",
+          lavender: "hsl(var(--bloom-lavender))",
+          sage: "hsl(var(--bloom-sage))",
+          peach: "hsl(var(--bloom-peach))",
+          cream: "hsl(var(--bloom-cream))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

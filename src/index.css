@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,79 +8,91 @@
   :root {
     --font-size-scale: 1;
 
-    --background: 140 15% 98%;
-    --foreground: 155 40% 5%;
+    --background: 330 30% 97%;
+    --foreground: 330 20% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 155 40% 5%;
+    --card: 330 25% 99%;
+    --card-foreground: 330 20% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 155 40% 5%;
+    --popover: 330 25% 99%;
+    --popover-foreground: 330 20% 15%;
 
-    --primary: 155 100% 12%;
+    --primary: 340 45% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 155 10% 94%;
-    --secondary-foreground: 155 40% 5%;
+    --secondary: 330 25% 93%;
+    --secondary-foreground: 330 20% 25%;
 
-    --muted: 155 10% 90%;
-    --muted-foreground: 155 10% 40%;
+    --muted: 330 18% 91%;
+    --muted-foreground: 330 10% 50%;
 
-    --accent: 142 76% 36%;
+    --accent: 155 45% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --accent-low: 142 76% 36%;
-    --accent-mid: 38 92% 50%;
-    --accent-high: 0 84% 60%;
+    --accent-low: 155 50% 42%;
+    --accent-mid: 42 85% 55%;
+    --accent-high: 0 65% 60%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 155 10% 90%;
-    --input: 155 10% 86%;
-    --ring: 155 100% 12%;
+    --border: 330 20% 90%;
+    --input: 330 18% 87%;
+    --ring: 340 45% 65%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --shadow-card: 0 0 0 1px rgba(0,0,0,.04), 0 2px 4px rgba(0,0,0,.02);
-    --shadow-elevated: 0 0 0 1px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+    --bloom-pink: 340 60% 80%;
+    --bloom-lavender: 270 40% 78%;
+    --bloom-sage: 145 30% 72%;
+    --bloom-peach: 20 70% 85%;
+    --bloom-cream: 40 50% 95%;
+
+    --shadow-card: 0 1px 3px rgba(180, 140, 160, 0.08), 0 4px 12px rgba(180, 140, 160, 0.05);
+    --shadow-elevated: 0 4px 16px rgba(180, 140, 160, 0.1), 0 12px 32px rgba(180, 140, 160, 0.08);
   }
 
   .dark {
-    --background: 155 20% 6%;
-    --foreground: 140 15% 92%;
+    --background: 330 15% 8%;
+    --foreground: 330 15% 90%;
 
-    --card: 155 15% 10%;
-    --card-foreground: 140 15% 92%;
+    --card: 330 12% 12%;
+    --card-foreground: 330 15% 90%;
 
-    --popover: 155 15% 10%;
-    --popover-foreground: 140 15% 92%;
+    --popover: 330 12% 12%;
+    --popover-foreground: 330 15% 90%;
 
-    --primary: 155 80% 40%;
-    --primary-foreground: 155 20% 6%;
+    --primary: 340 50% 70%;
+    --primary-foreground: 330 15% 8%;
 
-    --secondary: 155 12% 16%;
-    --secondary-foreground: 140 15% 85%;
+    --secondary: 330 12% 18%;
+    --secondary-foreground: 330 15% 82%;
 
-    --muted: 155 10% 18%;
-    --muted-foreground: 155 10% 55%;
+    --muted: 330 10% 20%;
+    --muted-foreground: 330 10% 55%;
 
-    --accent: 142 60% 45%;
-    --accent-foreground: 155 20% 6%;
+    --accent: 155 40% 50%;
+    --accent-foreground: 330 15% 8%;
 
-    --accent-low: 142 60% 45%;
-    --accent-mid: 38 80% 55%;
-    --accent-high: 0 70% 55%;
+    --accent-low: 155 40% 50%;
+    --accent-mid: 42 70% 58%;
+    --accent-high: 0 55% 55%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 155 10% 18%;
-    --input: 155 10% 22%;
-    --ring: 155 80% 40%;
+    --border: 330 10% 20%;
+    --input: 330 10% 24%;
+    --ring: 340 50% 70%;
 
-    --shadow-card: 0 0 0 1px rgba(255,255,255,.04), 0 2px 4px rgba(0,0,0,.3);
-    --shadow-elevated: 0 0 0 1px rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.4);
+    --bloom-pink: 340 40% 35%;
+    --bloom-lavender: 270 25% 35%;
+    --bloom-sage: 145 20% 30%;
+    --bloom-peach: 20 40% 30%;
+    --bloom-cream: 40 20% 18%;
+
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.25), 0 12px 32px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -95,13 +107,18 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Geist Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
   }
 }
 
 @layer utilities {
   .label-caps {
     @apply text-[10px] uppercase tracking-widest font-bold;
+    font-family: 'DM Sans', system-ui, sans-serif;
   }
 
   .shadow-card {
@@ -114,5 +131,22 @@
 
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+
+  .font-display {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  .bloom-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--bloom-pink) / 0.15),
+      hsl(var(--bloom-lavender) / 0.1),
+      hsl(var(--bloom-sage) / 0.08)
+    );
+  }
+
+  .bloom-border {
+    border: 1px solid hsl(var(--bloom-pink) / 0.2);
   }
 }

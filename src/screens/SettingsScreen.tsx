@@ -14,8 +14,8 @@ const SettingsScreen = ({ onOpenDietary }: Props) => {
   return (
     <div className="min-h-screen pb-24 px-5 pt-14">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="label-caps text-muted-foreground mb-1">Settings</div>
-        <h1 className="text-base font-medium tracking-tight">Preferences</h1>
+        <div className="label-caps text-bloom-pink mb-1">Settings</div>
+        <h1 className="text-xl font-semibold tracking-tight font-display">Preferences</h1>
       </motion.div>
 
       <div className="mt-5 space-y-5">
