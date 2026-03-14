@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera, Barcode, Search, Loader2, AlertCircle, ImagePlus } from "lucide-react";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 import { lookupAndEstimate } from "@/services/barcodeLookup";
@@ -28,7 +28,7 @@ const ANALYSIS_STEPS = [
 
 const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [mode, setMode] = useState<"barcode" | "photo">("barcode");
-  const [cameraActive, setCameraActive] = useState(true);
+  const [cameraActive, setCameraActive] = useState(false);
 
   // Barcode mode state
   const [barcodeInput, setBarcodeInput] = useState("");
@@ -40,8 +40,70 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [photoCameraActive, setPhotoCameraActive] = useState(false);
+  const [photoCameraError, setPhotoCameraError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const stopPhotoCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setPhotoCameraActive(false);
+  }, []);
+
+  const startPhotoCamera = useCallback(async () => {
+    try {
+      setPhotoCameraError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+      setPhotoCameraActive(true);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+    } catch (error) {
+      console.error("Photo camera error:", error);
+      setPhotoCameraError("Could not open camera. Please allow camera permission.");
+      setPhotoCameraActive(false);
+    }
+  }, []);
+
+  const capturePhotoFromPreview = useCallback(async () => {
+    if (!videoRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9)
+    );
+
+    if (!blob) return;
+
+    const file = new File([blob], `scan-${Date.now()}.jpg`, { type: "image/jpeg" });
+    const url = URL.createObjectURL(file);
+    setSelectedImage(url);
+    setSelectedFile(file);
+    stopPhotoCamera();
+  }, [stopPhotoCamera]);
+
+  useEffect(() => {
+    return () => stopPhotoCamera();
+  }, [stopPhotoCamera]);
 
   // --- Barcode mode handlers ---
 
@@ -56,7 +118,6 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
     const code = barcode || barcodeInput.trim();
     if (!code) return;
 
-    // Stop camera while looking up
     setCameraActive(false);
     setBarcodeInput(code);
     setScanState({ phase: "searching", barcode: code });
@@ -72,15 +133,13 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       onScanResult(result.product);
     } else if (result.status === "not_found") {
       setScanState({ phase: "not_found", barcode: code });
-      setCameraActive(true); // Re-enable camera to try again
     } else {
       setScanState({ phase: "error", message: result.message });
-      setCameraActive(true);
     }
   }, [barcodeInput, onScanResult]);
 
   const handleBarcodeDetected = useCallback((code: string) => {
-    toast({ title: "Barcode detected!", description: `Found: ${code}` });
+    toast({ title: "Barcode detected", description: code });
     handleBarcodeLookup(code);
   }, [handleBarcodeLookup]);
 
@@ -98,15 +157,20 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       const url = URL.createObjectURL(file);
       setSelectedImage(url);
       setSelectedFile(file);
+      stopPhotoCamera();
     }
   };
 
   const handleScanFood = async () => {
     if (!selectedFile) return;
     setIsScanning(true);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
+
     try {
       const formData = new FormData();
-      formData.append('image', selectedFile, selectedFile.name);
+      formData.append("image", selectedFile, selectedFile.name);
 
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -114,29 +178,39 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/food-image-scan`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${anonKey}`,
+            Authorization: `Bearer ${anonKey}`,
           },
           body: formData,
+          signal: controller.signal,
         }
       );
 
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'Scan failed');
+        throw new Error(result.error || "Scan failed");
       }
 
       const product = await estimateFromAIResult(result);
       if (product) {
         onScanResult(product);
       } else {
-        toast({ title: "Could not identify food", description: "Try a clearer photo or use barcode mode.", variant: "destructive" });
+        toast({
+          title: "Could not identify food",
+          description: "Try a clearer photo or use barcode mode.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Scan error:', error);
-      toast({ title: "Scan failed", description: "Could not send image. Please try again.", variant: "destructive" });
+      console.error("Scan error:", error);
+      const message =
+        error instanceof DOMException && error.name === "AbortError"
+          ? "Scan timed out. Please try again with a clearer photo."
+          : "Could not scan image. Please try again.";
+      toast({ title: "Scan failed", description: message, variant: "destructive" });
     } finally {
+      clearTimeout(timeoutId);
       setIsScanning(false);
     }
   };
@@ -171,21 +245,25 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
         {/* Barcode mode content */}
         {mode === "barcode" && (
           <div className="relative z-10 flex-1 flex flex-col items-center mt-4 px-6">
-            {/* Live camera scanner */}
             {!isLoading && cameraActive && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="mb-4"
+                className="mb-4 w-full"
               >
-                <BarcodeScanner
-                  active={cameraActive && mode === "barcode"}
-                  onDetected={handleBarcodeDetected}
-                />
+                <BarcodeScanner active={cameraActive} onDetected={handleBarcodeDetected} />
               </motion.div>
             )}
 
-            {/* Loading animation */}
+            {!isLoading && !cameraActive && (
+              <button
+                onClick={() => setCameraActive(true)}
+                className="mb-4 w-full max-w-[240px] h-11 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
+              >
+                Open Camera Scanner
+              </button>
+            )}
+
             {isLoading && (
               <motion.div
                 initial={{ scale: 1.05, opacity: 0 }}
@@ -204,7 +282,6 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
               </motion.div>
             )}
 
-            {/* Manual barcode input (always visible as fallback) */}
             <div className="w-full max-w-[280px] relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-foreground/40" />
               <input
@@ -229,7 +306,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-2 mt-4 text-sm text-amber-400"
+                  className="flex items-center gap-2 mt-4 text-sm text-destructive"
                 >
                   <AlertCircle className="w-4 h-4" />
                   Product not found in database. Try another barcode.
@@ -240,7 +317,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-2 mt-4 text-sm text-red-400"
+                  className="flex items-center gap-2 mt-4 text-sm text-destructive"
                 >
                   <AlertCircle className="w-4 h-4" />
                   {scanState.message}
@@ -264,6 +341,8 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
             >
               {selectedImage ? (
                 <img src={selectedImage} alt="Selected" className="w-full h-full object-cover rounded-xl" />
+              ) : photoCameraActive ? (
+                <video ref={videoRef} className="w-full h-full object-cover rounded-xl" playsInline muted autoPlay />
               ) : (
                 <>
                   {[
@@ -289,7 +368,11 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       <div className="relative z-10 bg-foreground p-5 pb-10 space-y-4">
         <div className="flex bg-primary-foreground/10 rounded-lg p-1 mx-auto max-w-[240px]">
           <button
-            onClick={() => { setMode("barcode"); setCameraActive(true); }}
+            onClick={() => {
+              setMode("barcode");
+              stopPhotoCamera();
+              setPhotoCameraError(null);
+            }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all ${
               mode === "barcode"
                 ? "bg-primary-foreground/20 text-primary-foreground"
@@ -299,7 +382,10 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
             <Barcode className="w-3.5 h-3.5" /> Barcode
           </button>
           <button
-            onClick={() => { setMode("photo"); setCameraActive(false); }}
+            onClick={() => {
+              setMode("photo");
+              setCameraActive(false);
+            }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all ${
               mode === "photo"
                 ? "bg-primary-foreground/20 text-primary-foreground"
@@ -310,19 +396,10 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           </button>
         </div>
 
-        {/* Hidden file inputs */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          className="hidden"
-          onChange={handleFileSelect}
-        />
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
           className="hidden"
           onChange={handleFileSelect}
         />
@@ -343,17 +420,24 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
         {mode === "photo" && (
           <div className="flex flex-col items-center gap-4">
             <div className="flex justify-center items-center gap-5">
-              {/* Camera capture button */}
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => cameraInputRef.current?.click()}
-                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center"
-                title="Take photo"
-              >
-                <Camera className="w-5 h-5 text-primary-foreground" />
-              </motion.button>
+              {!photoCameraActive ? (
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={startPhotoCamera}
+                  className="h-11 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2"
+                >
+                  <Camera className="w-4 h-4" /> Open Camera
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={capturePhotoFromPreview}
+                  className="h-11 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2"
+                >
+                  <Camera className="w-4 h-4" /> Capture
+                </motion.button>
+              )}
 
-              {/* Gallery upload button */}
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => fileInputRef.current?.click()}
@@ -364,8 +448,12 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
               </motion.button>
             </div>
 
+            {photoCameraError && (
+              <p className="text-xs text-destructive">{photoCameraError}</p>
+            )}
+
             <p className="text-xs text-primary-foreground/40">
-              📷 Camera &nbsp;·&nbsp; 🖼️ Gallery
+              📷 Camera preview in frame &nbsp;·&nbsp; 🖼️ Gallery
             </p>
 
             {selectedImage && (
