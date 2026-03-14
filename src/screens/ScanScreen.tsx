@@ -1,0 +1,119 @@
+import { motion } from "framer-motion";
+import { X, Camera, Barcode } from "lucide-react";
+import { useState } from "react";
+
+interface ScanScreenProps {
+  onClose: () => void;
+  onScanResult: () => void;
+}
+
+const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
+  const [mode, setMode] = useState<"barcode" | "photo">("barcode");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-foreground flex flex-col"
+    >
+      {/* Simulated camera view */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* Dark overlay simulating camera */}
+        <div className="absolute inset-0 bg-foreground/95" />
+        
+        {/* Header */}
+        <div className="relative z-10 flex items-center justify-between p-5 pt-14">
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-primary-foreground/10 flex items-center justify-center"
+          >
+            <X className="w-4 h-4 text-primary-foreground" />
+          </motion.button>
+          <span className="label-caps text-primary-foreground/60">
+            {mode === "barcode" ? "Scan Barcode" : "Photo Mode"}
+          </span>
+          <div className="w-9" />
+        </div>
+
+        {/* Bounding box */}
+        <div className="relative z-10 flex-1 flex items-center justify-center mt-16">
+          <motion.div
+            initial={{ scale: 1.05, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-64 h-64 border border-dashed border-primary-foreground/40 rounded-xl relative"
+          >
+            {/* Corner accents */}
+            {[
+              "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
+              "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
+              "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
+              "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
+            ].map((cls, i) => (
+              <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
+            ))}
+            
+            {/* Scanning line */}
+            <motion.div
+              className="absolute left-4 right-4 h-px bg-accent-low"
+              animate={{ top: ["20%", "80%", "20%"] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
+        </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="relative z-10 text-center text-sm text-primary-foreground/50 mt-8 px-8"
+        >
+          {mode === "barcode"
+            ? "Point your camera at a product barcode"
+            : "Take a photo of your meal to analyze"}
+        </motion.p>
+      </div>
+
+      {/* Bottom controls */}
+      <div className="relative z-10 bg-foreground p-5 pb-10 space-y-4">
+        {/* Mode toggle */}
+        <div className="flex bg-primary-foreground/10 rounded-lg p-1 mx-auto max-w-[240px]">
+          <button
+            onClick={() => setMode("barcode")}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all ${
+              mode === "barcode"
+                ? "bg-primary-foreground/20 text-primary-foreground"
+                : "text-primary-foreground/40"
+            }`}
+          >
+            <Barcode className="w-3.5 h-3.5" /> Barcode
+          </button>
+          <button
+            onClick={() => setMode("photo")}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all ${
+              mode === "photo"
+                ? "bg-primary-foreground/20 text-primary-foreground"
+                : "text-primary-foreground/40"
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5" /> Photo
+          </button>
+        </div>
+
+        {/* Capture button */}
+        <div className="flex justify-center">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={onScanResult}
+            className="w-16 h-16 rounded-full border-4 border-primary-foreground/30 flex items-center justify-center"
+          >
+            <div className="w-12 h-12 rounded-full bg-primary-foreground" />
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default ScanScreen;
