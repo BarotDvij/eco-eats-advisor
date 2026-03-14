@@ -66,7 +66,7 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
   ].filter(Boolean) as string[];
 
   return (
-    <div className="min-h-screen pb-24 px-5 pt-14 relative overflow-hidden">
+    <div className="min-h-screen pb-24 px-5 pt-10 relative overflow-hidden">
       {/* Floral bottom decoration */}
       <img
         src={bloomBottom}
@@ -75,42 +75,41 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
         aria-hidden="true"
       />
 
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6 relative z-10">
+      {/* Compact header with back button */}
+      <div className="flex items-center gap-2 mb-3 relative z-10">
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={onBack}
-          className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center"
+          className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0"
         >
           <ChevronLeft className="w-4 h-4" />
         </motion.button>
-        <div>
-          <div className="label-caps text-bloom-pink">Result</div>
-          <h1 className="text-base font-medium tracking-tight font-display">
-            {product.name}
-            {product.brand && <span className="text-muted-foreground"> — {product.brand}</span>}
-          </h1>
-        </div>
+        <h1 className="text-sm font-medium tracking-tight font-display truncate">
+          {product.name}
+          {product.brand && <span className="text-muted-foreground"> — {product.brand}</span>}
+        </h1>
       </div>
+
+      {/* Hero CO₂ Score — front and center */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        className="bg-card rounded-2xl shadow-card bloom-border p-5 flex flex-col items-center gap-1 mb-3 relative z-10"
+      >
+        <ScoreGauge value={product.impact_score} />
+        <div className="text-center mt-2">
+          <div className="text-2xl font-bold tracking-tighter font-display tabular text-foreground">
+            {product.total_co2e_per_kg} <span className="text-base font-medium text-muted-foreground">kg CO₂e/kg</span>
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            ≈ <span className="font-semibold tabular">{volume}</span> of CO₂ gas released
+          </div>
+        </div>
+      </motion.div>
 
       {/* Dietary conflict warning */}
       <DietaryConflictBanner product={product} />
-
-      {/* Score */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="bg-card rounded-2xl shadow-card bloom-border p-6 flex flex-col items-center gap-2 mb-4"
-      >
-        <ScoreGauge value={product.impact_score} />
-        <div className="text-center text-xs text-muted-foreground mt-1">
-          {product.total_co2e_per_kg} kg CO₂e per kg
-        </div>
-        <div className="text-center text-xs text-muted-foreground mt-0.5">
-          <span className="font-semibold tabular">{volume}</span> of CO₂ gas released
-        </div>
-      </motion.div>
 
       {/* Breakdown */}
       <motion.div
