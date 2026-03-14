@@ -3,13 +3,13 @@ import { ChevronLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { useDietaryPreferences } from "@/hooks/use-dietary-preferences";
 import AlternativeCard from "../components/AlternativeCard";
 
-const filters = [
-  { id: "no-peanuts", label: "No Peanuts", icon: "🥜" },
-  { id: "no-beef", label: "No Beef", icon: "🐄" },
+const quickFilters = [
+  { id: "low-carbon", label: "Low CO₂", icon: "🦶" },
   { id: "local", label: "Local Only", icon: "📍" },
-  { id: "vegan", label: "Vegan", icon: "🌱" },
+  { id: "organic", label: "Organic", icon: "🌿" },
 ];
 
 const categoryEmoji: Record<string, string> = {
@@ -18,8 +18,9 @@ const categoryEmoji: Record<string, string> = {
   grains: "🌾", snacks: "🍫",
 };
 
-// Categories considered vegan
 const veganCategories = ["produce", "dairy_alternative", "legumes", "grains", "protein"];
+const vegetarianExclude = ["meat", "seafood"];
+const pescatarianExclude = ["meat"];
 
 interface AlternativesScreenProps {
   product: Tables<"food_products">;
@@ -30,6 +31,7 @@ interface AlternativesScreenProps {
 const AlternativesScreen = ({ product, onBack, onSelectProduct }: AlternativesScreenProps) => {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [alternatives, setAlternatives] = useState<Tables<"food_products">[]>([]);
+  const { isSelected } = useDietaryPreferences();
 
   const toggleFilter = (id: string) => {
     setActiveFilters((prev) =>
@@ -38,7 +40,6 @@ const AlternativesScreen = ({ product, onBack, onSelectProduct }: AlternativesSc
   };
 
   useEffect(() => {
-    // Fetch products with lower impact score than current
     supabase
       .from("food_products")
       .select("*")
@@ -51,18 +52,45 @@ const AlternativesScreen = ({ product, onBack, onSelectProduct }: AlternativesSc
       });
   }, [product]);
 
-  // Apply client-side filters
   const filtered = alternatives.filter((alt) => {
-    if (activeFilters.includes("no-peanuts") && alt.name.toLowerCase().includes("peanut")) return false;
-    if (activeFilters.includes("no-beef") && alt.category === "meat" && alt.name.toLowerCase().includes("beef")) return false;
+    const name = alt.name.toLowerCase();
+
+    // Dietary preferences from settings
+    if (isSelected("vegan") && !veganCategories.includes(alt.category)) return false;
+    if (isSelected("vegetarian") && vegetarianExclude.includes(alt.category)) return false;
+    if (isSelected("pescatarian") && pescatarianExclude.includes(alt.category)) return false;
+    if (isSelected("plant-based") && !veganCategories.includes(alt.category)) return false;
+
+    // Allergies from settings
+    if (isSelected("peanuts") && name.includes("peanut")) return false;
+    if (isSelected("tree-nuts") && (name.includes("almond") || name.includes("cashew") || name.includes("walnut"))) return false;
+    if (isSelected("dairy") && alt.category === "dairy") return false;
+    if (isSelected("gluten") && (name.includes("wheat") || name.includes("bread") || name.includes("pasta"))) return false;
+    if (isSelected("soy") && (name.includes("soy") || name.includes("tofu") || name.includes("edamame"))) return false;
+    if (isSelected("fish") && alt.category === "seafood") return false;
+    if (isSelected("shellfish") && (name.includes("shrimp") || name.includes("crab") || name.includes("lobster"))) return false;
+    if (isSelected("eggs") && name.includes("egg")) return false;
+    if (isSelected("sesame") && name.includes("sesame")) return false;
+
+    // Health diets
+    if (isSelected("dairy-free") && alt.category === "dairy") return false;
+    if (isSelected("gluten-free") && (name.includes("wheat") || name.includes("bread") || name.includes("pasta"))) return false;
+
+    // Eco filters from settings
+    if (isSelected("locally-sourced") && alt.transport_method !== "local" && alt.transport_method !== "road") return false;
+    if (isSelected("organic") && alt.agricultural_practice !== "organic" && alt.agricultural_practice !== "regenerative") return false;
+    if (isSelected("minimal-packaging") && alt.packaging_recyclable !== true) return false;
+
+    // Quick filters (toggle buttons on this screen)
+    if (activeFilters.includes("low-carbon") && alt.total_co2e_per_kg > 2) return false;
     if (activeFilters.includes("local") && alt.transport_method !== "local" && alt.transport_method !== "road") return false;
-    if (activeFilters.includes("vegan") && !veganCategories.includes(alt.category)) return false;
+    if (activeFilters.includes("organic") && alt.agricultural_practice !== "organic" && alt.agricultural_practice !== "regenerative") return false;
+
     return true;
   });
 
   return (
     <div className="min-h-screen pb-24 px-5 pt-14">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <motion.button
           whileTap={{ scale: 0.96 }}
@@ -77,9 +105,9 @@ const AlternativesScreen = ({ product, onBack, onSelectProduct }: AlternativesSc
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Quick Filters */}
       <div className="flex gap-2 overflow-x-auto pb-3 mb-4 -mx-1 px-1">
-        {filters.map((f) => {
+        {quickFilters.map((f) => {
           const active = activeFilters.includes(f.id);
           return (
             <motion.button
