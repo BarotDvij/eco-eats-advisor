@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera, Barcode, Search, Loader2, AlertCircle, ImagePlus } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 import { lookupAndEstimate } from "@/services/barcodeLookup";
 import { estimateFromAIResult } from "@/services/imageEstimator";
+import BarcodeScanner from "@/components/BarcodeScanner";
 
 interface ScanScreenProps {
   onClose: () => void;
@@ -27,6 +28,7 @@ const ANALYSIS_STEPS = [
 
 const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [mode, setMode] = useState<"barcode" | "photo">("barcode");
+  const [cameraActive, setCameraActive] = useState(true);
 
   // Barcode mode state
   const [barcodeInput, setBarcodeInput] = useState("");
@@ -39,6 +41,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // --- Barcode mode handlers ---
 
@@ -49,15 +52,18 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
     }
   };
 
-  const handleBarcodeLookup = async () => {
-    const barcode = barcodeInput.trim();
-    if (!barcode) return;
+  const handleBarcodeLookup = useCallback(async (barcode?: string) => {
+    const code = barcode || barcodeInput.trim();
+    if (!code) return;
 
-    setScanState({ phase: "searching", barcode });
+    // Stop camera while looking up
+    setCameraActive(false);
+    setBarcodeInput(code);
+    setScanState({ phase: "searching", barcode: code });
     setAnalysisStep(0);
 
     const animationPromise = runAnalysisAnimation();
-    const lookupPromise = lookupAndEstimate(barcode);
+    const lookupPromise = lookupAndEstimate(code);
 
     const [, result] = await Promise.all([animationPromise, lookupPromise]);
 
@@ -65,11 +71,18 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       setScanState({ phase: "idle" });
       onScanResult(result.product);
     } else if (result.status === "not_found") {
-      setScanState({ phase: "not_found", barcode });
+      setScanState({ phase: "not_found", barcode: code });
+      setCameraActive(true); // Re-enable camera to try again
     } else {
       setScanState({ phase: "error", message: result.message });
+      setCameraActive(true);
     }
-  };
+  }, [barcodeInput, onScanResult]);
+
+  const handleBarcodeDetected = useCallback((code: string) => {
+    toast({ title: "Barcode detected!", description: `Found: ${code}` });
+    handleBarcodeLookup(code);
+  }, [handleBarcodeLookup]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -114,7 +127,6 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
         throw new Error(result.error || 'Scan failed');
       }
 
-      // Run the AI response through the carbon estimator
       const product = await estimateFromAIResult(result);
       if (product) {
         onScanResult(product);
@@ -158,51 +170,41 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
 
         {/* Barcode mode content */}
         {mode === "barcode" && (
-          <div className="relative z-10 flex-1 flex flex-col items-center mt-8 px-6">
-            <motion.div
-              initial={{ scale: 1.05, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="w-64 h-40 border border-dashed border-primary-foreground/40 rounded-xl relative mb-8"
-            >
-              {[
-                "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
-                "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
-                "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
-                "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
-              ].map((cls, i) => (
-                <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
-              ))}
-
-              {!isLoading && (
-                <motion.div
-                  className="absolute left-4 right-4 h-px bg-accent-low"
-                  animate={{ top: ["20%", "80%", "20%"] }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          <div className="relative z-10 flex-1 flex flex-col items-center mt-4 px-6">
+            {/* Live camera scanner */}
+            {!isLoading && cameraActive && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mb-4"
+              >
+                <BarcodeScanner
+                  active={cameraActive && mode === "barcode"}
+                  onDetected={handleBarcodeDetected}
                 />
-              )}
+              </motion.div>
+            )}
 
-              <AnimatePresence>
-                {isLoading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-                  >
-                    <Loader2 className="w-6 h-6 text-accent-low animate-spin" />
-                    <motion.p
-                      key={analysisStep}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-xs text-primary-foreground/70"
-                    >
-                      {ANALYSIS_STEPS[analysisStep]}
-                    </motion.p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+            {/* Loading animation */}
+            {isLoading && (
+              <motion.div
+                initial={{ scale: 1.05, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="w-64 h-40 border border-dashed border-primary-foreground/40 rounded-xl relative mb-4 flex flex-col items-center justify-center gap-3"
+              >
+                <Loader2 className="w-6 h-6 text-accent-low animate-spin" />
+                <motion.p
+                  key={analysisStep}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs text-primary-foreground/70"
+                >
+                  {ANALYSIS_STEPS[analysisStep]}
+                </motion.p>
+              </motion.div>
+            )}
 
+            {/* Manual barcode input (always visible as fallback) */}
             <div className="w-full max-w-[280px] relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-foreground/40" />
               <input
@@ -215,7 +217,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
                   if (scanState.phase !== "idle") setScanState({ phase: "idle" });
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Enter barcode number…"
+                placeholder="Or type barcode number…"
                 disabled={isLoading}
                 className="w-full h-11 pl-10 pr-4 bg-primary-foreground/10 rounded-xl text-sm text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:ring-2 focus:ring-accent-low/50 transition-all disabled:opacity-50"
               />
@@ -246,8 +248,8 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
               )}
             </AnimatePresence>
 
-            <p className="text-center text-xs text-primary-foreground/40 mt-6 px-4">
-              Enter or scan a barcode to look up the product on Open Food Facts and estimate its carbon footprint
+            <p className="text-center text-xs text-primary-foreground/40 mt-4 px-4">
+              Point your camera at a barcode, or type the number manually
             </p>
           </div>
         )}
@@ -272,11 +274,10 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
                   ].map((cls, i) => (
                     <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
                   ))}
-                  <motion.div
-                    className="absolute left-4 right-4 h-px bg-accent-low"
-                    animate={{ top: ["20%", "80%", "20%"] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                    <Camera className="w-8 h-8 text-primary-foreground/30" />
+                    <p className="text-xs text-primary-foreground/30">Take or choose a photo</p>
+                  </div>
                 </>
               )}
             </motion.div>
@@ -288,7 +289,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       <div className="relative z-10 bg-foreground p-5 pb-10 space-y-4">
         <div className="flex bg-primary-foreground/10 rounded-lg p-1 mx-auto max-w-[240px]">
           <button
-            onClick={() => setMode("barcode")}
+            onClick={() => { setMode("barcode"); setCameraActive(true); }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all ${
               mode === "barcode"
                 ? "bg-primary-foreground/20 text-primary-foreground"
@@ -298,7 +299,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
             <Barcode className="w-3.5 h-3.5" /> Barcode
           </button>
           <button
-            onClick={() => setMode("photo")}
+            onClick={() => { setMode("photo"); setCameraActive(false); }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all ${
               mode === "photo"
                 ? "bg-primary-foreground/20 text-primary-foreground"
@@ -309,10 +310,19 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           </button>
         </div>
 
+        {/* Hidden file inputs */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
           className="hidden"
           onChange={handleFileSelect}
         />
@@ -321,7 +331,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           <div className="flex justify-center">
             <motion.button
               whileTap={{ scale: 0.94 }}
-              onClick={handleBarcodeLookup}
+              onClick={() => handleBarcodeLookup()}
               disabled={!barcodeInput.trim() || isLoading}
               className="w-full max-w-[240px] h-12 rounded-2xl bg-accent-low text-foreground text-sm font-semibold disabled:opacity-40 transition-all"
             >
@@ -333,16 +343,30 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
         {mode === "photo" && (
           <div className="flex flex-col items-center gap-4">
             <div className="flex justify-center items-center gap-5">
+              {/* Camera capture button */}
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => cameraInputRef.current?.click()}
+                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center"
+                title="Take photo"
+              >
+                <Camera className="w-5 h-5 text-primary-foreground" />
+              </motion.button>
+
+              {/* Gallery upload button */}
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => fileInputRef.current?.click()}
                 className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center"
+                title="Choose from gallery"
               >
                 <ImagePlus className="w-5 h-5 text-primary-foreground" />
               </motion.button>
-
-              <div className="w-12" />
             </div>
+
+            <p className="text-xs text-primary-foreground/40">
+              📷 Camera &nbsp;·&nbsp; 🖼️ Gallery
+            </p>
 
             {selectedImage && (
               <motion.button
