@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { X, Camera, Barcode, ImagePlus } from "lucide-react";
+import { X, Camera, Barcode, ImagePlus, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ScanScreenProps {
@@ -12,6 +13,8 @@ interface ScanScreenProps {
 const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [mode, setMode] = useState<"barcode" | "photo">("barcode");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,6 +22,45 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
     if (file) {
       const url = URL.createObjectURL(file);
       setSelectedImage(url);
+      setSelectedFile(file);
+    }
+  };
+
+  const handleScanFood = async () => {
+    if (!selectedFile) return;
+    setIsScanning(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedFile, selectedFile.name);
+
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/food-image-scan`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${anonKey}`,
+          },
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Scan failed');
+      }
+
+      toast({ title: "📸 Image sent!", description: "Your food image is being analyzed by the workflow." });
+
+      // Still show a result from DB for now
+      await handleCapture();
+    } catch (error) {
+      console.error('Scan error:', error);
+      toast({ title: "Scan failed", description: "Could not send image. Please try again.", variant: "destructive" });
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -158,11 +200,15 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               whileTap={{ scale: 0.96 }}
-              onClick={handleCapture}
-              className="w-full max-w-[240px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
+              onClick={handleScanFood}
+              disabled={isScanning}
+              className="w-full max-w-[240px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold tracking-wide flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <Camera className="w-4 h-4" />
-              Scan Food
+              {isScanning ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Scanning...</>
+              ) : (
+                <><Camera className="w-4 h-4" /> Scan Food</>
+              )}
             </motion.button>
           )}
         </div>
