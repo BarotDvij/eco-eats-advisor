@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import FoodCard from "../components/FoodCard";
+import bloomTop from "@/assets/bloom-flowers-top.png";
 
 interface HomeScreenProps {
   onScan: () => void;
@@ -52,15 +53,24 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
   const displayList = search.trim() ? filtered : products.slice(0, 3);
 
   return (
-    <div className="min-h-screen pb-24 px-5 pt-14">
+    <div className="min-h-screen pb-24 px-5 pt-14 relative overflow-hidden">
+      {/* Floral decoration */}
+      <img
+        src={bloomTop}
+        alt=""
+        className="absolute -top-4 -right-8 w-48 opacity-40 pointer-events-none select-none"
+        aria-hidden="true"
+      />
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
+        className="mb-6 relative z-10"
       >
-        <div className="label-caps text-muted-foreground mb-1">Trace</div>
-        <h1 className="text-base font-medium tracking-tight">Good morning.</h1>
+        <div className="label-caps text-bloom-pink mb-1">🌸 Bloom</div>
+        <h1 className="text-xl font-semibold tracking-tight font-display">Good morning.</h1>
+        <p className="text-sm text-muted-foreground mt-1">Track your food's footprint</p>
       </motion.div>
 
       {/* Search */}
@@ -68,15 +78,15 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="relative mb-6"
+        className="relative mb-6 z-10"
       >
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search food or brand..."
-          className="w-full h-10 pl-9 pr-4 bg-card rounded-lg shadow-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+          className="w-full h-11 pl-10 pr-4 bg-card rounded-2xl shadow-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 bloom-border transition-all"
         />
       </motion.div>
 
@@ -86,24 +96,25 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-card rounded-xl shadow-card p-4 mb-6"
+          className="bg-card rounded-2xl shadow-card p-4 mb-6 bloom-border"
         >
           <div className="flex items-center justify-between mb-3">
             <div>
               <div className="label-caps text-muted-foreground">This Week</div>
-              <div className="text-2xl font-semibold tracking-tighter tabular mt-0.5">
-                12.9 <span className="text-sm font-normal text-muted-foreground">kg CO₂e</span>
+              <div className="text-2xl font-semibold tracking-tighter tabular mt-0.5 font-display">
+                12.9 <span className="text-sm font-normal text-muted-foreground" style={{ fontFamily: "'DM Sans', sans-serif" }}>kg CO₂e</span>
               </div>
             </div>
-            <div className="text-xs font-semibold text-accent-low bg-accent-low/10 px-2 py-0.5 rounded-full">
+            <div className="text-xs font-semibold text-accent-low bg-accent-low/10 px-2.5 py-1 rounded-full">
               ↓ 18% vs last week
             </div>
           </div>
-          <div className="flex items-end gap-1 h-10">
+          <div className="flex items-end gap-1.5 h-10">
             {weekData.map((v, i) => (
               <motion.div
                 key={i}
-                className="flex-1 bg-primary/20 rounded-sm"
+                className="flex-1 rounded-full"
+                style={{ background: `linear-gradient(to top, hsl(var(--bloom-sage)), hsl(var(--accent-low)))` }}
                 initial={{ height: 0 }}
                 animate={{ height: `${(v / 4) * 100}%` }}
                 transition={{ delay: 0.3 + i * 0.04, duration: 0.5 }}
@@ -154,14 +165,14 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="fixed bottom-20 left-5 right-5 max-w-md mx-auto"
+        className="fixed bottom-20 left-5 right-5 max-w-md mx-auto z-20"
       >
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={onScan}
-          className="w-full h-16 bg-primary text-primary-foreground rounded-2xl text-base font-semibold shadow-elevated flex items-center justify-center gap-2 transition-all duration-200"
+          className="w-full h-14 bg-primary text-primary-foreground rounded-2xl text-base font-semibold shadow-elevated flex items-center justify-center gap-2 transition-all duration-200"
         >
-          <div className="w-5 h-5 border-2 border-primary-foreground/60 rounded" />
+          <span className="text-lg">🌱</span>
           Scan Food
         </motion.button>
       </motion.div>

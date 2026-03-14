@@ -18,27 +18,23 @@ const tabs: { id: Tab; icon: typeof Scan; label: string }[] = [
 
 const BottomNav = ({ active, onNavigate }: BottomNavProps) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border">
       <div className="max-w-md mx-auto flex items-center justify-around h-16 px-4">
         {tabs.map((tab) => {
           const isActive = active === tab.id;
           return (
             <motion.button
               key={tab.id}
-              whileTap={{ scale: 0.96 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => onNavigate(tab.id)}
-              className={`flex flex-col items-center gap-0.5 py-2 px-3 rounded-lg transition-colors duration-200 ${
-                isActive ? "text-primary" : "text-muted-foreground"
+              className={`flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all duration-200 ${
+                isActive
+                  ? "text-primary bg-primary/8"
+                  : "text-muted-foreground"
               }`}
             >
               <tab.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 1.5} />
               <span className="text-[10px] font-medium tracking-wide">{tab.label}</span>
-              {isActive && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute top-0 w-8 h-0.5 bg-primary rounded-full"
-                />
-              )}
             </motion.button>
           );
         })}
