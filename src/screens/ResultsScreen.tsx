@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Info } from "lucide-react";
 import ScoreGauge from "../components/ScoreGauge";
 import ImpactBreakdownBar from "../components/ImpactBreakdownBar";
+import NutritionFacts from "../components/NutritionFacts";
 import type { Tables } from "@/integrations/supabase/types";
 import bloomBottom from "@/assets/bloom-flowers-bottom.png";
 
