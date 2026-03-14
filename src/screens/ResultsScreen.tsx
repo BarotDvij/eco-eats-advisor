@@ -5,6 +5,7 @@ import ImpactBreakdownBar from "../components/ImpactBreakdownBar";
 import NutritionFacts from "../components/NutritionFacts";
 import type { Tables } from "@/integrations/supabase/types";
 import bloomBottom from "@/assets/bloom-flowers-bottom.png";
+import DietaryConflictBanner from "@/components/DietaryConflictBanner";
 
 interface ResultsScreenProps {
   product: Tables<"food_products">;
