@@ -21,8 +21,12 @@ export type Database = {
             | null
           barcode: string | null
           brand: string | null
+          calories_per_100g: number | null
+          carbs_g: number | null
           category: string
           created_at: string
+          fat_g: number | null
+          fiber_g: number | null
           id: string
           image_url: string | null
           impact_score: number
@@ -33,6 +37,9 @@ export type Database = {
           packaging_co2e_pct: number
           packaging_material: string | null
           packaging_recyclable: boolean | null
+          protein_g: number | null
+          sodium_mg: number | null
+          sugar_g: number | null
           total_co2e_per_kg: number
           transport_co2e_pct: number
           transport_distance_km: number | null
@@ -48,8 +55,12 @@ export type Database = {
             | null
           barcode?: string | null
           brand?: string | null
+          calories_per_100g?: number | null
+          carbs_g?: number | null
           category: string
           created_at?: string
+          fat_g?: number | null
+          fiber_g?: number | null
           id?: string
           image_url?: string | null
           impact_score: number
@@ -60,6 +71,9 @@ export type Database = {
           packaging_co2e_pct?: number
           packaging_material?: string | null
           packaging_recyclable?: boolean | null
+          protein_g?: number | null
+          sodium_mg?: number | null
+          sugar_g?: number | null
           total_co2e_per_kg: number
           transport_co2e_pct?: number
           transport_distance_km?: number | null
@@ -75,8 +89,12 @@ export type Database = {
             | null
           barcode?: string | null
           brand?: string | null
+          calories_per_100g?: number | null
+          carbs_g?: number | null
           category?: string
           created_at?: string
+          fat_g?: number | null
+          fiber_g?: number | null
           id?: string
           image_url?: string | null
           impact_score?: number
@@ -87,6 +105,9 @@ export type Database = {
           packaging_co2e_pct?: number
           packaging_material?: string | null
           packaging_recyclable?: boolean | null
+          protein_g?: number | null
+          sodium_mg?: number | null
+          sugar_g?: number | null
           total_co2e_per_kg?: number
           transport_co2e_pct?: number
           transport_distance_km?: number | null

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Info } from "lucide-react";
 import ScoreGauge from "../components/ScoreGauge";
 import ImpactBreakdownBar from "../components/ImpactBreakdownBar";
+import NutritionFacts from "../components/NutritionFacts";
 import type { Tables } from "@/integrations/supabase/types";
 import bloomBottom from "@/assets/bloom-flowers-bottom.png";
 
@@ -121,7 +122,23 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
         </ul>
       </motion.div>
 
-      {/* Actions */}
+      {/* Nutrition Facts */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55 }}
+        className="bg-card rounded-2xl shadow-card bloom-border p-4 mb-6"
+      >
+        <NutritionFacts
+          calories={(product as any).calories_per_100g}
+          protein={(product as any).protein_g}
+          carbs={(product as any).carbs_g}
+          fat={(product as any).fat_g}
+          fiber={(product as any).fiber_g}
+          sugar={(product as any).sugar_g}
+          sodium={(product as any).sodium_mg}
+        />
+      </motion.div>
       <div className="flex gap-3 relative z-10">
         <motion.button
           whileTap={{ scale: 0.96 }}
