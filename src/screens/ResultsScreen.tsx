@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { ChevronLeft, Info } from "lucide-react";
 import ScoreGauge from "../components/ScoreGauge";
 import ImpactBreakdownBar from "../components/ImpactBreakdownBar";
@@ -41,6 +42,10 @@ function formatVolume(co2ePerKg: number): string {
 const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenProps) => {
   const volume = formatVolume(product.total_co2e_per_kg);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
   const breakdownSegments = [
     { label: "Ingredients", percentage: product.ingredient_co2e_pct, color: "hsl(340, 45%, 65%)" },
     { label: "Transport", percentage: product.transport_co2e_pct, color: "hsl(270, 40%, 78%)" },
@@ -66,7 +71,7 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
   ].filter(Boolean) as string[];
 
   return (
-    <div className="min-h-screen pb-24 px-5 pt-10 relative overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background pb-24 px-5 pt-10 relative">
       {/* Floral bottom decoration */}
       <img
         src={bloomBottom}
