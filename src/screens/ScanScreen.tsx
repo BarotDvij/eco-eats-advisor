@@ -122,7 +122,25 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           </button>
         </div>
 
-        <div className="flex justify-center">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+
+        <div className="flex justify-center items-center gap-5">
+          {mode === "photo" && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => fileInputRef.current?.click()}
+              className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center"
+            >
+              <ImagePlus className="w-5 h-5 text-primary-foreground" />
+            </motion.button>
+          )}
+
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleCapture}
@@ -130,6 +148,8 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           >
             <div className="w-12 h-12 rounded-full bg-primary-foreground" />
           </motion.button>
+
+          {mode === "photo" && <div className="w-12" />}
         </div>
       </div>
     </motion.div>
