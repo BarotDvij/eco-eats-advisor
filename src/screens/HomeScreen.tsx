@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
-import { Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import FoodCard from "../components/FoodCard";
+import ScoreGauge from "../components/ScoreGauge";
+import ImpactBreakdownBar from "../components/ImpactBreakdownBar";
 import bloomTop from "@/assets/bloom-flowers-top.png";
 import bloomBottom from "@/assets/bloom-flowers-bottom.png";
 import bloomAccent from "@/assets/bloom-flower-accent.png";
@@ -20,7 +22,41 @@ const categoryEmoji: Record<string, string> = {
   grains: "🌾", snacks: "🍫",
 };
 
+const transportLabels: Record<string, string> = {
+  air: "✈️ Air freight", sea: "🚢 Sea freight", rail: "🚂 Rail",
+  road: "🚛 Road transport", local: "📍 Local sourcing",
+};
+
+const practiceLabels: Record<string, string> = {
+  conventional: "Conventional farming",
+  organic: "Organic certified",
+  regenerative: "Regenerative agriculture",
+  hydroponic: "Hydroponic",
+  free_range: "Free-range",
+  factory_farmed: "Factory farmed",
+};
+
 const weekData = [0.8, 2.1, 1.4, 3.2, 1.8, 2.4, 1.2];
+
+function buildFacts(product: Tables<"food_products">): string[] {
+  return [
+    product.agricultural_practice
+      ? `${practiceLabels[product.agricultural_practice]} practices`
+      : null,
+    product.origin_country && product.transport_method
+      ? `${transportLabels[product.transport_method]} from ${product.origin_country} (${product.transport_distance_km?.toLocaleString() ?? "?"} km)`
+      : null,
+    product.water_use_liters_per_kg
+      ? `Water usage: ${product.water_use_liters_per_kg.toLocaleString()} L/kg`
+      : null,
+    product.land_use_m2_per_kg
+      ? `Land use: ${product.land_use_m2_per_kg} m²/kg`
+      : null,
+    product.packaging_material
+      ? `Packaging: ${product.packaging_material}${product.packaging_recyclable ? " (recyclable ♻️)" : ""}`
+      : null,
+  ].filter(Boolean) as string[];
+}
 
 const HomeScreen = ({ onScan, onSelectProduct, highlightedProduct }: HomeScreenProps) => {
   const [products, setProducts] = useState<Tables<"food_products">[]>([]);
@@ -54,6 +90,16 @@ const HomeScreen = ({ onScan, onSelectProduct, highlightedProduct }: HomeScreenP
   }, [search]);
 
   const displayList = search.trim() ? filtered : products.slice(0, 3);
+
+  const breakdownSegments = highlightedProduct
+    ? [
+        { label: "Ingredients", percentage: highlightedProduct.ingredient_co2e_pct, color: "hsl(340, 45%, 65%)" },
+        { label: "Transport", percentage: highlightedProduct.transport_co2e_pct, color: "hsl(270, 40%, 78%)" },
+        { label: "Packaging", percentage: highlightedProduct.packaging_co2e_pct, color: "hsl(145, 30%, 72%)" },
+      ]
+    : [];
+
+  const facts = highlightedProduct ? buildFacts(highlightedProduct) : [];
 
   return (
     <div className="min-h-screen pb-24 px-5 pt-14 relative overflow-hidden">
@@ -115,38 +161,55 @@ const HomeScreen = ({ onScan, onSelectProduct, highlightedProduct }: HomeScreenP
 
       {/* Latest scan result — directly under search */}
       {highlightedProduct && (
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.14 }}
-          onClick={() => onSelectProduct(highlightedProduct)}
-          className="w-full bg-card rounded-2xl shadow-card bloom-border p-4 mb-5 relative z-10 text-left"
+          className="relative z-10 mb-5 space-y-3"
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="label-caps text-muted-foreground mb-1">Latest Loaded Result</div>
-              <h2 className="text-base font-semibold tracking-tight font-display truncate">{highlightedProduct.name}</h2>
-              {highlightedProduct.brand && (
-                <p className="text-xs text-muted-foreground mt-0.5 truncate">{highlightedProduct.brand}</p>
-              )}
+          {/* Score card with circle gauge */}
+          <div className="bg-card rounded-2xl shadow-card bloom-border p-4">
+            <div className="label-caps text-muted-foreground mb-2">Latest Loaded Result</div>
+            <div className="flex items-center gap-4">
+              <ScoreGauge value={highlightedProduct.impact_score} />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-semibold tracking-tight font-display truncate">{highlightedProduct.name}</h2>
+                {highlightedProduct.brand && (
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{highlightedProduct.brand}</p>
+                )}
+                <div className="text-lg font-bold tabular mt-1 text-foreground">
+                  {highlightedProduct.total_co2e_per_kg}
+                  <span className="text-xs font-medium text-muted-foreground ml-1">kg CO₂e/kg</span>
+                </div>
+              </div>
+              <button onClick={() => onSelectProduct(highlightedProduct)} className="flex-shrink-0">
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </button>
             </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            <div className="rounded-xl bg-secondary p-3">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">CO₂e</p>
-              <p className="text-lg font-semibold tabular text-foreground">
-                {highlightedProduct.total_co2e_per_kg}
-                <span className="text-xs font-medium text-muted-foreground ml-1">kg/kg</span>
-              </p>
-            </div>
-            <div className="rounded-xl bg-secondary p-3">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Impact</p>
-              <p className="text-lg font-semibold tabular text-foreground">{highlightedProduct.impact_score}/100</p>
-            </div>
+          {/* Impact breakdown */}
+          <div className="bg-card rounded-2xl shadow-card bloom-border p-4">
+            <ImpactBreakdownBar segments={breakdownSegments} />
           </div>
-        </motion.button>
+
+          {/* Product details */}
+          {facts.length > 0 && (
+            <div className="bg-card rounded-2xl shadow-card bloom-border p-4">
+              <div className="label-caps text-muted-foreground mb-3 flex items-center gap-1">
+                <Info className="w-3 h-3" /> Product Details
+              </div>
+              <ul className="space-y-2">
+                {facts.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
+                    <div className="w-1.5 h-1.5 rounded-full bg-bloom-pink mt-2 flex-shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </motion.div>
       )}
 
       {/* Weekly Sparkline */}
