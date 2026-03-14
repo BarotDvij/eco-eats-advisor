@@ -6,6 +6,8 @@
 
 @layer base {
   :root {
+    --font-size-scale: 1;
+
     --background: 140 15% 98%;
     --foreground: 155 40% 5%;
 
@@ -43,6 +45,43 @@
     --shadow-card: 0 0 0 1px rgba(0,0,0,.04), 0 2px 4px rgba(0,0,0,.02);
     --shadow-elevated: 0 0 0 1px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
   }
+
+  .dark {
+    --background: 155 20% 6%;
+    --foreground: 140 15% 92%;
+
+    --card: 155 15% 10%;
+    --card-foreground: 140 15% 92%;
+
+    --popover: 155 15% 10%;
+    --popover-foreground: 140 15% 92%;
+
+    --primary: 155 80% 40%;
+    --primary-foreground: 155 20% 6%;
+
+    --secondary: 155 12% 16%;
+    --secondary-foreground: 140 15% 85%;
+
+    --muted: 155 10% 18%;
+    --muted-foreground: 155 10% 55%;
+
+    --accent: 142 60% 45%;
+    --accent-foreground: 155 20% 6%;
+
+    --accent-low: 142 60% 45%;
+    --accent-mid: 38 80% 55%;
+    --accent-high: 0 70% 55%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 155 10% 18%;
+    --input: 155 10% 22%;
+    --ring: 155 80% 40%;
+
+    --shadow-card: 0 0 0 1px rgba(255,255,255,.04), 0 2px 4px rgba(0,0,0,.3);
+    --shadow-elevated: 0 0 0 1px rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.4);
+  }
 }
 
 @layer base {
@@ -53,6 +92,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Geist Sans', system-ui, -apple-system, sans-serif;
+    font-size: calc(1rem * var(--font-size-scale, 1));
   }
 }
 
