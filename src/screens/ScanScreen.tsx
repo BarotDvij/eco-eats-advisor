@@ -62,22 +62,27 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           <motion.div
             initial={{ scale: 1.05, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-64 h-64 border border-dashed border-primary-foreground/40 rounded-xl relative"
+            className="w-64 h-64 border border-dashed border-primary-foreground/40 rounded-xl relative overflow-hidden"
           >
-            {[
-              "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
-              "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
-              "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
-              "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
-            ].map((cls, i) => (
-              <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
-            ))}
-            
-            <motion.div
-              className="absolute left-4 right-4 h-px bg-accent-low"
-              animate={{ top: ["20%", "80%", "20%"] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            />
+            {selectedImage && mode === "photo" ? (
+              <img src={selectedImage} alt="Selected" className="w-full h-full object-cover rounded-xl" />
+            ) : (
+              <>
+                {[
+                  "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
+                  "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
+                  "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
+                  "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
+                ].map((cls, i) => (
+                  <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
+                ))}
+                <motion.div
+                  className="absolute left-4 right-4 h-px bg-accent-low"
+                  animate={{ top: ["20%", "80%", "20%"] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </>
+            )}
           </motion.div>
         </div>
 
