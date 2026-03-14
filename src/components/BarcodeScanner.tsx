@@ -8,12 +8,12 @@ interface BarcodeScannerProps {
 
 const BarcodeScanner = ({ onDetected, active }: BarcodeScannerProps) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const runningRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const detectedRef = useRef(false);
 
   useEffect(() => {
-    if (!active || !containerRef.current) return;
+    if (!active) return;
 
     detectedRef.current = false;
     const scannerId = "barcode-scanner-region";
@@ -23,21 +23,18 @@ const BarcodeScanner = ({ onDetected, active }: BarcodeScannerProps) => {
     scanner
       .start(
         { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 120 },
-          aspectRatio: 1.6,
-        },
+        { fps: 10, qrbox: { width: 250, height: 120 }, aspectRatio: 1.6 },
         (decodedText) => {
           if (!detectedRef.current) {
             detectedRef.current = true;
             onDetected(decodedText);
           }
         },
-        () => {
-          // ignore scan failures (no code in frame)
-        }
+        () => {}
       )
+      .then(() => {
+        runningRef.current = true;
+      })
       .catch((err) => {
         console.error("Camera error:", err);
         setError(
@@ -48,10 +45,13 @@ const BarcodeScanner = ({ onDetected, active }: BarcodeScannerProps) => {
       });
 
     return () => {
-      scanner
-        .stop()
-        .then(() => scanner.clear())
-        .catch(() => {});
+      if (runningRef.current) {
+        scanner
+          .stop()
+          .then(() => scanner.clear())
+          .catch(() => {});
+        runningRef.current = false;
+      }
       scannerRef.current = null;
     };
   }, [active, onDetected]);
@@ -59,7 +59,7 @@ const BarcodeScanner = ({ onDetected, active }: BarcodeScannerProps) => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center text-center px-4 py-8">
-        <p className="text-sm text-red-400 mb-2">{error}</p>
+        <p className="text-sm text-destructive mb-2">{error}</p>
         <p className="text-xs text-primary-foreground/40">
           You can still type the barcode number manually below.
         </p>
@@ -68,10 +68,7 @@ const BarcodeScanner = ({ onDetected, active }: BarcodeScannerProps) => {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full max-w-[300px] mx-auto overflow-hidden rounded-xl"
-    >
+    <div className="w-full max-w-[300px] mx-auto overflow-hidden rounded-xl">
       <div id="barcode-scanner-region" />
     </div>
   );
