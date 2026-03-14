@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 
 interface BarcodeScannerProps {
@@ -6,72 +6,74 @@ interface BarcodeScannerProps {
   active: boolean;
 }
 
-const BarcodeScanner = ({ onDetected, active }: BarcodeScannerProps) => {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-  const runningRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
-  const detectedRef = useRef(false);
+const BarcodeScanner = forwardRef<HTMLDivElement, BarcodeScannerProps>(
+  ({ onDetected, active }, ref) => {
+    const runningRef = useRef(false);
+    const [error, setError] = useState<string | null>(null);
+    const detectedRef = useRef(false);
 
-  useEffect(() => {
-    if (!active) return;
+    useEffect(() => {
+      if (!active) return;
 
-    detectedRef.current = false;
-    const scannerId = "barcode-scanner-region";
-    const scanner = new Html5Qrcode(scannerId);
-    scannerRef.current = scanner;
+      detectedRef.current = false;
+      setError(null);
+      const scannerId = "barcode-scanner-region";
+      const scanner = new Html5Qrcode(scannerId);
 
-    scanner
-      .start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 120 }, aspectRatio: 1.6 },
-        (decodedText) => {
-          if (!detectedRef.current) {
-            detectedRef.current = true;
-            onDetected(decodedText);
-          }
-        },
-        () => {}
-      )
-      .then(() => {
-        runningRef.current = true;
-      })
-      .catch((err) => {
-        console.error("Camera error:", err);
-        setError(
-          typeof err === "string"
-            ? err
-            : "Camera access denied. Please allow camera permissions and try again."
-        );
-      });
+      scanner
+        .start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 120 }, aspectRatio: 1.6 },
+          (decodedText) => {
+            if (!detectedRef.current) {
+              detectedRef.current = true;
+              onDetected(decodedText);
+            }
+          },
+          () => {}
+        )
+        .then(() => {
+          runningRef.current = true;
+        })
+        .catch((err) => {
+          console.error("Camera error:", err);
+          setError(
+            typeof err === "string"
+              ? err
+              : "Could not open camera. Please allow camera permission and try again."
+          );
+        });
 
-    return () => {
-      if (runningRef.current) {
-        scanner
-          .stop()
-          .then(() => scanner.clear())
-          .catch(() => {});
-        runningRef.current = false;
-      }
-      scannerRef.current = null;
-    };
-  }, [active, onDetected]);
+      return () => {
+        if (runningRef.current) {
+          scanner
+            .stop()
+            .then(() => scanner.clear())
+            .catch(() => {});
+          runningRef.current = false;
+        }
+      };
+    }, [active, onDetected]);
 
-  if (error) {
+    if (error) {
+      return (
+        <div ref={ref} className="flex flex-col items-center justify-center text-center px-4 py-8">
+          <p className="text-sm text-destructive mb-2">{error}</p>
+          <p className="text-xs text-primary-foreground/40">
+            You can still type the barcode number manually below.
+          </p>
+        </div>
+      );
+    }
+
     return (
-      <div className="flex flex-col items-center justify-center text-center px-4 py-8">
-        <p className="text-sm text-destructive mb-2">{error}</p>
-        <p className="text-xs text-primary-foreground/40">
-          You can still type the barcode number manually below.
-        </p>
+      <div ref={ref} className="w-full max-w-[300px] mx-auto overflow-hidden rounded-xl border border-primary-foreground/20">
+        <div id="barcode-scanner-region" className="min-h-[180px]" />
       </div>
     );
   }
+);
 
-  return (
-    <div className="w-full max-w-[300px] mx-auto overflow-hidden rounded-xl">
-      <div id="barcode-scanner-region" />
-    </div>
-  );
-};
+BarcodeScanner.displayName = "BarcodeScanner";
 
 export default BarcodeScanner;
