@@ -8,9 +8,10 @@ import AlternativesScreen from "../screens/AlternativesScreen";
 import DashboardScreen from "../screens/DashboardScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import ChatScreen from "../screens/ChatScreen";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Tab = "home" | "history" | "dashboard" | "settings";
+type Tab = "home" | "history" | "chat" | "dashboard" | "settings";
 type Overlay = null | "scan" | "results" | "alternatives";
 
 const Index = () => {

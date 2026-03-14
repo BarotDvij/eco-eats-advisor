@@ -1,1 +1,4 @@
 project_id = "rhlukeypergkqdjqufuq"
+
+[functions.carbon-chat]
+verify_jwt = false
