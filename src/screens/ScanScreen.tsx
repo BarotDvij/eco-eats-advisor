@@ -200,11 +200,15 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               whileTap={{ scale: 0.96 }}
-              onClick={handleCapture}
-              className="w-full max-w-[240px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
+              onClick={handleScanFood}
+              disabled={isScanning}
+              className="w-full max-w-[240px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold tracking-wide flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <Camera className="w-4 h-4" />
-              Scan Food
+              {isScanning ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Scanning...</>
+              ) : (
+                <><Camera className="w-4 h-4" /> Scan Food</>
+              )}
             </motion.button>
           )}
         </div>
