@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { X, Camera, Barcode } from "lucide-react";
-import { useState } from "react";
+import { X, Camera, Barcode, ImagePlus } from "lucide-react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
