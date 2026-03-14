@@ -10,6 +10,7 @@ import HistoryScreen from "../screens/HistoryScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import ChatScreen from "../screens/ChatScreen";
 import DietaryPreferencesScreen from "../screens/DietaryPreferencesScreen";
+import FallingPetals from "../components/FallingPetals";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Tab = "home" | "history" | "chat" | "dashboard" | "settings";
@@ -79,6 +80,7 @@ const Index = () => {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background relative">
+      <FallingPetals count={10} />
       {renderTab()}
       <AnimatePresence>{renderOverlay()}</AnimatePresence>
       {!overlay && <BottomNav active={tab} onNavigate={setTab} />}

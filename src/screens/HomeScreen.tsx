@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import FoodCard from "../components/FoodCard";
 import bloomTop from "@/assets/bloom-flowers-top.png";
+import bloomBottom from "@/assets/bloom-flowers-bottom.png";
+import bloomAccent from "@/assets/bloom-flower-accent.png";
 
 interface HomeScreenProps {
   onScan: () => void;
@@ -54,11 +56,23 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
 
   return (
     <div className="min-h-screen pb-24 px-5 pt-14 relative overflow-hidden">
-      {/* Floral decoration */}
+      {/* Floral decorations */}
       <img
         src={bloomTop}
         alt=""
-        className="absolute -top-4 -right-8 w-48 opacity-40 pointer-events-none select-none"
+        className="absolute -top-4 -right-8 w-56 opacity-35 pointer-events-none select-none"
+        aria-hidden="true"
+      />
+      <img
+        src={bloomAccent}
+        alt=""
+        className="absolute top-32 -left-12 w-28 opacity-15 pointer-events-none select-none rotate-[-20deg]"
+        aria-hidden="true"
+      />
+      <img
+        src={bloomBottom}
+        alt=""
+        className="absolute bottom-16 left-0 right-0 w-full opacity-20 pointer-events-none select-none"
         aria-hidden="true"
       />
 
@@ -68,9 +82,17 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6 relative z-10"
       >
-        <div className="label-caps text-bloom-pink mb-1">🌸 Bloom</div>
-        <h1 className="text-xl font-semibold tracking-tight font-display">Good morning.</h1>
-        <p className="text-sm text-muted-foreground mt-1">Track your food's footprint</p>
+        <div className="label-caps text-bloom-pink mb-1 flex items-center gap-1">
+          <motion.span
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            🌸
+          </motion.span>
+          Bloom
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight font-display">Good morning.</h1>
+        <p className="text-sm text-muted-foreground mt-1">Track your food's carbon footprint 🌿</p>
       </motion.div>
 
       {/* Search */}
@@ -80,13 +102,13 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
         transition={{ delay: 0.1 }}
         className="relative mb-6 z-10"
       >
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-bloom-lavender" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search food or brand..."
-          className="w-full h-11 pl-10 pr-4 bg-card rounded-2xl shadow-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 bloom-border transition-all"
+          className="w-full h-11 pl-10 pr-4 bg-card rounded-2xl shadow-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-bloom-pink/30 bloom-border transition-all"
         />
       </motion.div>
 
@@ -96,30 +118,34 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-card rounded-2xl shadow-card p-4 mb-6 bloom-border"
+          className="bg-card/80 backdrop-blur-sm rounded-2xl shadow-card p-4 mb-6 bloom-border relative overflow-hidden"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <div className="label-caps text-muted-foreground">This Week</div>
-              <div className="text-2xl font-semibold tracking-tighter tabular mt-0.5 font-display">
-                12.9 <span className="text-sm font-normal text-muted-foreground" style={{ fontFamily: "'DM Sans', sans-serif" }}>kg CO₂e</span>
+          {/* Subtle floral bg pattern */}
+          <div className="absolute inset-0 bloom-gradient opacity-50" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="label-caps text-muted-foreground flex items-center gap-1">🌷 This Week</div>
+                <div className="text-2xl font-semibold tracking-tighter tabular mt-0.5 font-display">
+                  12.9 <span className="text-sm font-normal text-muted-foreground" style={{ fontFamily: "'DM Sans', sans-serif" }}>kg CO₂e</span>
+                </div>
+              </div>
+              <div className="text-xs font-semibold text-accent-low bg-accent-low/10 px-2.5 py-1 rounded-full">
+                ↓ 18% vs last week
               </div>
             </div>
-            <div className="text-xs font-semibold text-accent-low bg-accent-low/10 px-2.5 py-1 rounded-full">
-              ↓ 18% vs last week
+            <div className="flex items-end gap-1.5 h-10">
+              {weekData.map((v, i) => (
+                <motion.div
+                  key={i}
+                  className="flex-1 rounded-full"
+                  style={{ background: `linear-gradient(to top, hsl(var(--bloom-sage)), hsl(var(--bloom-pink)))` }}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${(v / 4) * 100}%` }}
+                  transition={{ delay: 0.3 + i * 0.04, duration: 0.5 }}
+                />
+              ))}
             </div>
-          </div>
-          <div className="flex items-end gap-1.5 h-10">
-            {weekData.map((v, i) => (
-              <motion.div
-                key={i}
-                className="flex-1 rounded-full"
-                style={{ background: `linear-gradient(to top, hsl(var(--bloom-sage)), hsl(var(--accent-low)))` }}
-                initial={{ height: 0 }}
-                animate={{ height: `${(v / 4) * 100}%` }}
-                transition={{ delay: 0.3 + i * 0.04, duration: 0.5 }}
-              />
-            ))}
           </div>
         </motion.div>
       )}
@@ -129,11 +155,11 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="mb-8"
+        className="mb-8 relative z-10"
       >
         <div className="flex items-center justify-between mb-3">
-          <div className="label-caps text-muted-foreground">
-            {search.trim() ? "Search Results" : "Recent Products"}
+          <div className="label-caps text-muted-foreground flex items-center gap-1">
+            🌼 {search.trim() ? "Search Results" : "Recent Products"}
           </div>
           {!search.trim() && (
             <button className="flex items-center gap-0.5 text-xs text-primary font-medium">
@@ -169,10 +195,20 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
       >
         <motion.button
           whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.02 }}
           onClick={onScan}
-          className="w-full h-14 bg-primary text-primary-foreground rounded-2xl text-base font-semibold shadow-elevated flex items-center justify-center gap-2 transition-all duration-200"
+          className="w-full h-14 rounded-2xl text-base font-semibold shadow-elevated flex items-center justify-center gap-2 transition-all duration-200 text-primary-foreground"
+          style={{
+            background: `linear-gradient(135deg, hsl(var(--primary)), hsl(var(--bloom-pink)), hsl(var(--bloom-lavender)))`,
+          }}
         >
-          <span className="text-lg">🌱</span>
+          <motion.span
+            className="text-lg"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            🌱
+          </motion.span>
           Scan Food
         </motion.button>
       </motion.div>
