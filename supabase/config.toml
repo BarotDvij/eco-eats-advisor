@@ -2,3 +2,6 @@ project_id = "rhlukeypergkqdjqufuq"
 
 [functions.carbon-chat]
 verify_jwt = false
+
+[functions.food-image-scan]
+verify_jwt = false
