@@ -22,6 +22,45 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
     if (file) {
       const url = URL.createObjectURL(file);
       setSelectedImage(url);
+      setSelectedFile(file);
+    }
+  };
+
+  const handleScanFood = async () => {
+    if (!selectedFile) return;
+    setIsScanning(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedFile, selectedFile.name);
+
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/food-image-scan`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${anonKey}`,
+          },
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Scan failed');
+      }
+
+      toast({ title: "📸 Image sent!", description: "Your food image is being analyzed by the workflow." });
+
+      // Still show a result from DB for now
+      await handleCapture();
+    } catch (error) {
+      console.error('Scan error:', error);
+      toast({ title: "Scan failed", description: "Could not send image. Please try again.", variant: "destructive" });
+    } finally {
+      setIsScanning(false);
     }
   };
 
