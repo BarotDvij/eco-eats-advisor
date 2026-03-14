@@ -10,7 +10,13 @@ const DietaryPreferencesScreen = ({ onBack }: Props) => {
   const { isSelected, toggle, count, clear } = useDietaryPreferences();
 
   return (
-    <div className="min-h-screen pb-24 px-5 pt-14">
+    <motion.div
+      className="fixed inset-0 z-50 bg-background overflow-y-auto pb-24 px-5 pt-14"
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <motion.button
