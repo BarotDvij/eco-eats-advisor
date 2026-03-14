@@ -1,26 +1,54 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, Info } from "lucide-react";
+import { ChevronLeft, Info, Truck, Leaf, Package } from "lucide-react";
 import ScoreGauge from "../components/ScoreGauge";
 import ImpactBreakdownBar from "../components/ImpactBreakdownBar";
+import type { Tables } from "@/integrations/supabase/types";
 
 interface ResultsScreenProps {
+  product: Tables<"food_products">;
   onBack: () => void;
   onViewAlternatives: () => void;
 }
 
-const breakdownSegments = [
-  { label: "Ingredients", percentage: 78, color: "hsl(155, 100%, 12%)" },
-  { label: "Transport", percentage: 15, color: "hsl(155, 60%, 35%)" },
-  { label: "Packaging", percentage: 7, color: "hsl(155, 30%, 60%)" },
-];
+const transportLabels: Record<string, string> = {
+  air: "✈️ Air freight", sea: "🚢 Sea freight", rail: "🚂 Rail",
+  road: "🚛 Road transport", local: "📍 Local sourcing",
+};
 
-const reasons = [
-  "High methane output from livestock rearing",
-  "Plastic-heavy packaging increases waste footprint",
-  "Regional sourcing reduces transport emissions",
-];
+const practiceLabels: Record<string, string> = {
+  conventional: "Conventional farming",
+  organic: "Organic certified",
+  regenerative: "Regenerative agriculture",
+  hydroponic: "Hydroponic",
+  free_range: "Free-range",
+  factory_farmed: "Factory farmed",
+};
 
-const ResultsScreen = ({ onBack, onViewAlternatives }: ResultsScreenProps) => {
+const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenProps) => {
+  const breakdownSegments = [
+    { label: "Ingredients", percentage: product.ingredient_co2e_pct, color: "hsl(155, 100%, 12%)" },
+    { label: "Transport", percentage: product.transport_co2e_pct, color: "hsl(155, 60%, 35%)" },
+    { label: "Packaging", percentage: product.packaging_co2e_pct, color: "hsl(155, 30%, 60%)" },
+  ];
+
+  const facts = [
+    product.agricultural_practice
+      ? `${practiceLabels[product.agricultural_practice]} practices`
+      : null,
+    product.origin_country && product.transport_method
+      ? `${transportLabels[product.transport_method]} from ${product.origin_country} (${product.transport_distance_km?.toLocaleString() ?? "?"} km)`
+      : null,
+    product.water_use_liters_per_kg
+      ? `Water usage: ${product.water_use_liters_per_kg.toLocaleString()} L/kg`
+      : null,
+    product.land_use_m2_per_kg
+      ? `Land use: ${product.land_use_m2_per_kg} m²/kg`
+      : null,
+    product.packaging_material
+      ? `Packaging: ${product.packaging_material}${product.packaging_recyclable ? " (recyclable ♻️)" : ""}`
+      : null,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="min-h-screen pb-24 px-5 pt-14">
       {/* Header */}
@@ -34,7 +62,10 @@ const ResultsScreen = ({ onBack, onViewAlternatives }: ResultsScreenProps) => {
         </motion.button>
         <div>
           <div className="label-caps text-muted-foreground">Result</div>
-          <h1 className="text-base font-medium tracking-tight">Beef Patty — 250g</h1>
+          <h1 className="text-base font-medium tracking-tight">
+            {product.name}
+            {product.brand && <span className="text-muted-foreground"> — {product.brand}</span>}
+          </h1>
         </div>
       </div>
 
@@ -43,9 +74,12 @@ const ResultsScreen = ({ onBack, onViewAlternatives }: ResultsScreenProps) => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
-        className="bg-card rounded-xl shadow-card p-6 flex justify-center mb-4"
+        className="bg-card rounded-xl shadow-card p-6 flex flex-col items-center gap-2 mb-4"
       >
-        <ScoreGauge value={4.2} />
+        <ScoreGauge value={product.impact_score} />
+        <div className="text-center text-xs text-muted-foreground mt-1">
+          {product.total_co2e_per_kg} kg CO₂e per kg
+        </div>
       </motion.div>
 
       {/* Breakdown */}
@@ -58,7 +92,7 @@ const ResultsScreen = ({ onBack, onViewAlternatives }: ResultsScreenProps) => {
         <ImpactBreakdownBar segments={breakdownSegments} />
       </motion.div>
 
-      {/* Why */}
+      {/* Facts */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -66,13 +100,13 @@ const ResultsScreen = ({ onBack, onViewAlternatives }: ResultsScreenProps) => {
         className="bg-card rounded-xl shadow-card p-4 mb-6"
       >
         <div className="label-caps text-muted-foreground mb-3 flex items-center gap-1">
-          <Info className="w-3 h-3" /> Contributing Factors
+          <Info className="w-3 h-3" /> Product Details
         </div>
         <ul className="space-y-2">
-          {reasons.map((r, i) => (
+          {facts.map((f, i) => (
             <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
               <div className="w-1 h-1 rounded-full bg-foreground/40 mt-2 flex-shrink-0" />
-              {r}
+              {f}
             </li>
           ))}
         </ul>

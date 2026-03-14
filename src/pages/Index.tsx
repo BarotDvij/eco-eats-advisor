@@ -8,6 +8,7 @@ import AlternativesScreen from "../screens/AlternativesScreen";
 import DashboardScreen from "../screens/DashboardScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import type { Tables } from "@/integrations/supabase/types";
 
 type Tab = "home" | "history" | "dashboard" | "settings";
 type Overlay = null | "scan" | "results" | "alternatives";
@@ -15,6 +16,12 @@ type Overlay = null | "scan" | "results" | "alternatives";
 const Index = () => {
   const [tab, setTab] = useState<Tab>("home");
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Tables<"food_products"> | null>(null);
+
+  const handleSelectProduct = (product: Tables<"food_products">) => {
+    setSelectedProduct(product);
+    setOverlay("results");
+  };
 
   const renderTab = () => {
     switch (tab) {
@@ -22,7 +29,7 @@ const Index = () => {
         return (
           <HomeScreen
             onScan={() => setOverlay("scan")}
-            onSelectFood={() => setOverlay("results")}
+            onSelectProduct={handleSelectProduct}
           />
         );
       case "history":
@@ -40,18 +47,25 @@ const Index = () => {
         return (
           <ScanScreen
             onClose={() => setOverlay(null)}
-            onScanResult={() => setOverlay("results")}
+            onScanResult={handleSelectProduct}
           />
         );
       case "results":
-        return (
+        return selectedProduct ? (
           <ResultsScreen
+            product={selectedProduct}
             onBack={() => setOverlay(null)}
             onViewAlternatives={() => setOverlay("alternatives")}
           />
-        );
+        ) : null;
       case "alternatives":
-        return <AlternativesScreen onBack={() => setOverlay("results")} />;
+        return selectedProduct ? (
+          <AlternativesScreen
+            product={selectedProduct}
+            onBack={() => setOverlay("results")}
+            onSelectProduct={handleSelectProduct}
+          />
+        ) : null;
       default:
         return null;
     }

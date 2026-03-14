@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, Egg, Milk, Leaf } from "lucide-react";
-import { useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import AlternativeCard from "../components/AlternativeCard";
 
 const filters = [
@@ -10,53 +12,53 @@ const filters = [
   { id: "vegan", label: "Vegan", icon: "🌱" },
 ];
 
-const alternatives = [
-  {
-    currentName: "Beef Patty",
-    currentCo2: 4.2,
-    altName: "Beyond Meat",
-    altCo2: 0.5,
-    altEmoji: "🌱",
-    savingsPercent: 88,
-  },
-  {
-    currentName: "Beef Patty",
-    currentCo2: 4.2,
-    altName: "Portobello Cap",
-    altCo2: 0.1,
-    altEmoji: "🍄",
-    savingsPercent: 97,
-  },
-  {
-    currentName: "Beef Patty",
-    currentCo2: 4.2,
-    altName: "Black Bean Patty",
-    altCo2: 0.3,
-    altEmoji: "🫘",
-    savingsPercent: 93,
-  },
-  {
-    currentName: "Beef Patty",
-    currentCo2: 4.2,
-    altName: "Chicken Breast",
-    altCo2: 1.8,
-    altEmoji: "🍗",
-    savingsPercent: 57,
-  },
-];
+const categoryEmoji: Record<string, string> = {
+  meat: "🥩", dairy: "🥛", dairy_alternative: "🥛", produce: "🥑",
+  spreads: "🥜", protein: "🌱", seafood: "🐟", legumes: "🫘",
+  grains: "🌾", snacks: "🍫",
+};
+
+// Categories considered vegan
+const veganCategories = ["produce", "dairy_alternative", "legumes", "grains", "protein"];
 
 interface AlternativesScreenProps {
+  product: Tables<"food_products">;
   onBack: () => void;
+  onSelectProduct: (product: Tables<"food_products">) => void;
 }
 
-const AlternativesScreen = ({ onBack }: AlternativesScreenProps) => {
+const AlternativesScreen = ({ product, onBack, onSelectProduct }: AlternativesScreenProps) => {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [alternatives, setAlternatives] = useState<Tables<"food_products">[]>([]);
 
   const toggleFilter = (id: string) => {
     setActiveFilters((prev) =>
       prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
     );
   };
+
+  useEffect(() => {
+    // Fetch products with lower impact score than current
+    supabase
+      .from("food_products")
+      .select("*")
+      .lt("impact_score", product.impact_score)
+      .neq("id", product.id)
+      .order("impact_score", { ascending: true })
+      .limit(10)
+      .then(({ data }) => {
+        if (data) setAlternatives(data);
+      });
+  }, [product]);
+
+  // Apply client-side filters
+  const filtered = alternatives.filter((alt) => {
+    if (activeFilters.includes("no-peanuts") && alt.name.toLowerCase().includes("peanut")) return false;
+    if (activeFilters.includes("no-beef") && alt.category === "meat" && alt.name.toLowerCase().includes("beef")) return false;
+    if (activeFilters.includes("local") && alt.transport_method !== "local" && alt.transport_method !== "road") return false;
+    if (activeFilters.includes("vegan") && !veganCategories.includes(alt.category)) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen pb-24 px-5 pt-14">
@@ -70,8 +72,8 @@ const AlternativesScreen = ({ onBack }: AlternativesScreenProps) => {
           <ChevronLeft className="w-4 h-4" />
         </motion.button>
         <div>
-          <div className="label-caps text-muted-foreground">Alternatives</div>
-          <h1 className="text-base font-medium tracking-tight">Lower Impact Options</h1>
+          <div className="label-caps text-muted-foreground">Alternatives for</div>
+          <h1 className="text-base font-medium tracking-tight">{product.name}</h1>
         </div>
       </div>
 
@@ -98,16 +100,35 @@ const AlternativesScreen = ({ onBack }: AlternativesScreenProps) => {
 
       {/* Cards */}
       <div className="space-y-3">
-        {alternatives.map((alt, i) => (
-          <motion.div
-            key={alt.altName}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-          >
-            <AlternativeCard {...alt} />
-          </motion.div>
-        ))}
+        {filtered.map((alt, i) => {
+          const savings = Math.round(
+            ((product.total_co2e_per_kg - alt.total_co2e_per_kg) / product.total_co2e_per_kg) * 100
+          );
+          return (
+            <motion.div
+              key={alt.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 }}
+              onClick={() => onSelectProduct(alt)}
+              className="cursor-pointer"
+            >
+              <AlternativeCard
+                currentName={product.name}
+                currentCo2={product.total_co2e_per_kg}
+                altName={alt.name}
+                altCo2={alt.total_co2e_per_kg}
+                altEmoji={categoryEmoji[alt.category] || "🍽️"}
+                savingsPercent={savings > 0 ? savings : 0}
+              />
+            </motion.div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            No lower-impact alternatives found with these filters.
+          </p>
+        )}
       </div>
     </div>
   );

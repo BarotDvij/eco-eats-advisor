@@ -1,14 +1,28 @@
 import { motion } from "framer-motion";
 import { X, Camera, Barcode } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
 interface ScanScreenProps {
   onClose: () => void;
-  onScanResult: () => void;
+  onScanResult: (product: Tables<"food_products">) => void;
 }
 
 const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [mode, setMode] = useState<"barcode" | "photo">("barcode");
+
+  const handleCapture = async () => {
+    // Simulate scanning — pick a random product from DB
+    const { data } = await supabase
+      .from("food_products")
+      .select("*")
+      .limit(15);
+    if (data && data.length > 0) {
+      const random = data[Math.floor(Math.random() * data.length)];
+      onScanResult(random);
+    }
+  };
 
   return (
     <motion.div
@@ -17,12 +31,9 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-foreground flex flex-col"
     >
-      {/* Simulated camera view */}
       <div className="flex-1 relative overflow-hidden">
-        {/* Dark overlay simulating camera */}
         <div className="absolute inset-0 bg-foreground/95" />
         
-        {/* Header */}
         <div className="relative z-10 flex items-center justify-between p-5 pt-14">
           <motion.button
             whileTap={{ scale: 0.96 }}
@@ -37,14 +48,12 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           <div className="w-9" />
         </div>
 
-        {/* Bounding box */}
         <div className="relative z-10 flex-1 flex items-center justify-center mt-16">
           <motion.div
             initial={{ scale: 1.05, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="w-64 h-64 border border-dashed border-primary-foreground/40 rounded-xl relative"
           >
-            {/* Corner accents */}
             {[
               "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
               "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
@@ -54,7 +63,6 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
               <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
             ))}
             
-            {/* Scanning line */}
             <motion.div
               className="absolute left-4 right-4 h-px bg-accent-low"
               animate={{ top: ["20%", "80%", "20%"] }}
@@ -75,9 +83,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
         </motion.p>
       </div>
 
-      {/* Bottom controls */}
       <div className="relative z-10 bg-foreground p-5 pb-10 space-y-4">
-        {/* Mode toggle */}
         <div className="flex bg-primary-foreground/10 rounded-lg p-1 mx-auto max-w-[240px]">
           <button
             onClick={() => setMode("barcode")}
@@ -101,11 +107,10 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           </button>
         </div>
 
-        {/* Capture button */}
         <div className="flex justify-center">
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={onScanResult}
+            onClick={handleCapture}
             className="w-16 h-16 rounded-full border-4 border-primary-foreground/30 flex items-center justify-center"
           >
             <div className="w-12 h-12 rounded-full bg-primary-foreground" />
