@@ -92,7 +92,7 @@ const DietaryPreferencesScreen = ({ onBack }: Props) => {
           </p>
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
