@@ -35,6 +35,14 @@ const NESCAFE_RICH: Tables<"food_products"> = {
   packaging_recyclable: true,
   water_use_liters_per_kg: 18900,
   land_use_m2_per_kg: 11.9,
+  // Nutrition fields (null for demo product)
+  calories_per_100g: null,
+  carbs_g: null,
+  fat_g: null,
+  fiber_g: null,
+  protein_g: null,
+  sodium_mg: null,
+  sugar_g: null,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
