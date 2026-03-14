@@ -11,9 +11,9 @@ serve(async (req) => {
   }
 
   try {
-    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
-    if (!webhookUrl) {
-      throw new Error('N8N_WEBHOOK_URL is not configured');
+    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!apiKey) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     const formData = await req.formData();
@@ -26,33 +26,76 @@ serve(async (req) => {
       );
     }
 
-    // Forward the image to n8n webhook
-    const webhookFormData = new FormData();
-    webhookFormData.append('image', imageFile, imageFile.name);
+    // Convert image to base64
+    const arrayBuffer = await imageFile.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const mimeType = imageFile.type || 'image/jpeg';
 
-    const response = await fetch(webhookUrl, {
+    // Call Gemini via Lovable AI Gateway
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
-      body: webhookFormData,
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `Analyze this food product image. Identify the food item and return a JSON object with these fields:
+{
+  "name": "product name",
+  "brand": "brand name if visible, or null",
+  "category": "one of: meat, dairy, produce, seafood, grains, snacks, beverages, legumes, protein, spreads, dairy_alternative",
+  "ingredients": ["list", "of", "likely", "main", "ingredients"],
+  "origin_country": "likely country of origin or null",
+  "packaging": "packaging material description or null",
+  "barcode": "barcode number if visible, or null"
+}
+Return ONLY the JSON object, no other text.`
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${base64}`
+                }
+              }
+            ]
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 500,
+      }),
     });
 
-    const data = await response.text();
-    let parsedData;
-    try {
-      parsedData = JSON.parse(data);
-    } catch {
-      parsedData = { raw: data };
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`AI Gateway error [${response.status}]: ${errText}`);
     }
 
-    if (!response.ok) {
-      throw new Error(`Webhook call failed [${response.status}]: ${data}`);
+    const aiResponse = await response.json();
+    const content = aiResponse.choices?.[0]?.message?.content || '';
+
+    // Parse JSON from the response (handle markdown code blocks)
+    let parsed;
+    try {
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+      parsed = JSON.parse(jsonMatch[1].trim());
+    } catch {
+      console.error('Failed to parse AI response:', content);
+      parsed = { name: content.trim(), category: 'snacks' };
     }
 
     return new Response(
-      JSON.stringify({ success: true, data: parsedData }),
+      JSON.stringify({ success: true, data: parsed }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
-    console.error('Error calling n8n webhook:', error);
+    console.error('Error in food-image-scan:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),

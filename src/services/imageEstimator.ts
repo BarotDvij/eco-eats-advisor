@@ -67,9 +67,7 @@ function asStringArray(v: unknown): string[] | undefined {
 export async function estimateFromAIResult(
   raw: unknown
 ): Promise<Tables<"food_products"> | null> {
-  // Check demo products first (guaranteed to work for presentations)
-  const demo = matchDemoFromAI(raw);
-  if (demo) return demo;
+  // Skip demo matching — use real AI results only
 
   const ai = normalizeAIResult(raw);
   const foodName = ai.food || ai.name || ai.product_name;
