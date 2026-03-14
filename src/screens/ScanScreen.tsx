@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { X, Camera, Barcode } from "lucide-react";
-import { useState } from "react";
+import { X, Camera, Barcode, ImagePlus } from "lucide-react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -11,6 +11,16 @@ interface ScanScreenProps {
 
 const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [mode, setMode] = useState<"barcode" | "photo">("barcode");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setSelectedImage(url);
+    }
+  };
 
   const handleCapture = async () => {
     // Simulate scanning — pick a random product from DB
@@ -52,22 +62,27 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           <motion.div
             initial={{ scale: 1.05, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-64 h-64 border border-dashed border-primary-foreground/40 rounded-xl relative"
+            className="w-64 h-64 border border-dashed border-primary-foreground/40 rounded-xl relative overflow-hidden"
           >
-            {[
-              "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
-              "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
-              "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
-              "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
-            ].map((cls, i) => (
-              <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
-            ))}
-            
-            <motion.div
-              className="absolute left-4 right-4 h-px bg-accent-low"
-              animate={{ top: ["20%", "80%", "20%"] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            />
+            {selectedImage && mode === "photo" ? (
+              <img src={selectedImage} alt="Selected" className="w-full h-full object-cover rounded-xl" />
+            ) : (
+              <>
+                {[
+                  "top-0 left-0 border-t-2 border-l-2 rounded-tl-xl",
+                  "top-0 right-0 border-t-2 border-r-2 rounded-tr-xl",
+                  "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl",
+                  "bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl",
+                ].map((cls, i) => (
+                  <div key={i} className={`absolute w-8 h-8 border-primary-foreground/80 ${cls}`} />
+                ))}
+                <motion.div
+                  className="absolute left-4 right-4 h-px bg-accent-low"
+                  animate={{ top: ["20%", "80%", "20%"] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </>
+            )}
           </motion.div>
         </div>
 
@@ -107,7 +122,25 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           </button>
         </div>
 
-        <div className="flex justify-center">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+
+        <div className="flex justify-center items-center gap-5">
+          {mode === "photo" && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => fileInputRef.current?.click()}
+              className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center"
+            >
+              <ImagePlus className="w-5 h-5 text-primary-foreground" />
+            </motion.button>
+          )}
+
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleCapture}
@@ -115,6 +148,8 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           >
             <div className="w-12 h-12 rounded-full bg-primary-foreground" />
           </motion.button>
+
+          {mode === "photo" && <div className="w-12" />}
         </div>
       </div>
     </motion.div>
