@@ -8,88 +8,88 @@
   :root {
     --font-size-scale: 1;
 
-    --background: 330 30% 97%;
-    --foreground: 330 20% 15%;
+    --background: 175 25% 97%;
+    --foreground: 180 20% 12%;
 
-    --card: 330 25% 99%;
-    --card-foreground: 330 20% 15%;
+    --card: 175 20% 99%;
+    --card-foreground: 180 20% 12%;
 
-    --popover: 330 25% 99%;
-    --popover-foreground: 330 20% 15%;
+    --popover: 175 20% 99%;
+    --popover-foreground: 180 20% 12%;
 
-    --primary: 340 45% 65%;
+    --primary: 175 55% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 330 25% 93%;
-    --secondary-foreground: 330 20% 25%;
+    --secondary: 175 20% 93%;
+    --secondary-foreground: 180 20% 22%;
 
-    --muted: 330 18% 91%;
-    --muted-foreground: 330 10% 50%;
+    --muted: 175 15% 91%;
+    --muted-foreground: 180 10% 48%;
 
-    --accent: 155 45% 45%;
+    --accent: 168 50% 42%;
     --accent-foreground: 0 0% 100%;
 
-    --accent-low: 155 50% 42%;
+    --accent-low: 168 50% 42%;
     --accent-mid: 42 85% 55%;
     --accent-high: 0 65% 60%;
 
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 330 20% 90%;
-    --input: 330 18% 87%;
-    --ring: 340 45% 65%;
+    --border: 175 18% 89%;
+    --input: 175 15% 86%;
+    --ring: 175 55% 42%;
 
     --radius: 1rem;
 
-    --bloom-pink: 340 60% 80%;
-    --bloom-lavender: 270 40% 78%;
-    --bloom-sage: 145 30% 72%;
-    --bloom-peach: 20 70% 85%;
-    --bloom-cream: 40 50% 95%;
+    --bloom-pink: 175 45% 72%;
+    --bloom-lavender: 195 40% 75%;
+    --bloom-sage: 160 30% 72%;
+    --bloom-peach: 165 50% 82%;
+    --bloom-cream: 170 30% 95%;
 
-    --shadow-card: 0 1px 3px rgba(180, 140, 160, 0.08), 0 4px 12px rgba(180, 140, 160, 0.05);
-    --shadow-elevated: 0 4px 16px rgba(180, 140, 160, 0.1), 0 12px 32px rgba(180, 140, 160, 0.08);
+    --shadow-card: 0 1px 3px rgba(100, 180, 175, 0.08), 0 4px 12px rgba(100, 180, 175, 0.05);
+    --shadow-elevated: 0 4px 16px rgba(100, 180, 175, 0.1), 0 12px 32px rgba(100, 180, 175, 0.08);
   }
 
   .dark {
-    --background: 330 15% 8%;
-    --foreground: 330 15% 90%;
+    --background: 180 15% 7%;
+    --foreground: 175 15% 90%;
 
-    --card: 330 12% 12%;
-    --card-foreground: 330 15% 90%;
+    --card: 180 12% 11%;
+    --card-foreground: 175 15% 90%;
 
-    --popover: 330 12% 12%;
-    --popover-foreground: 330 15% 90%;
+    --popover: 180 12% 11%;
+    --popover-foreground: 175 15% 90%;
 
-    --primary: 340 50% 70%;
-    --primary-foreground: 330 15% 8%;
+    --primary: 175 50% 50%;
+    --primary-foreground: 180 15% 7%;
 
-    --secondary: 330 12% 18%;
-    --secondary-foreground: 330 15% 82%;
+    --secondary: 180 12% 17%;
+    --secondary-foreground: 175 15% 82%;
 
-    --muted: 330 10% 20%;
-    --muted-foreground: 330 10% 55%;
+    --muted: 180 10% 19%;
+    --muted-foreground: 180 10% 55%;
 
-    --accent: 155 40% 50%;
-    --accent-foreground: 330 15% 8%;
+    --accent: 168 40% 48%;
+    --accent-foreground: 180 15% 7%;
 
-    --accent-low: 155 40% 50%;
+    --accent-low: 168 40% 48%;
     --accent-mid: 42 70% 58%;
     --accent-high: 0 55% 55%;
 
     --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 330 10% 20%;
-    --input: 330 10% 24%;
-    --ring: 340 50% 70%;
+    --border: 180 10% 19%;
+    --input: 180 10% 23%;
+    --ring: 175 50% 50%;
 
-    --bloom-pink: 340 40% 35%;
-    --bloom-lavender: 270 25% 35%;
-    --bloom-sage: 145 20% 30%;
-    --bloom-peach: 20 40% 30%;
-    --bloom-cream: 40 20% 18%;
+    --bloom-pink: 175 35% 32%;
+    --bloom-lavender: 195 25% 32%;
+    --bloom-sage: 160 20% 28%;
+    --bloom-peach: 165 30% 28%;
+    --bloom-cream: 170 15% 16%;
 
     --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
     --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.25), 0 12px 32px rgba(0, 0, 0, 0.2);
