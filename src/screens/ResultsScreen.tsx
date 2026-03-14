@@ -71,7 +71,7 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
   ].filter(Boolean) as string[];
 
   return (
-    <div className="min-h-screen pb-24 px-5 pt-10 relative overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background pb-24 px-5 pt-10 relative">
       {/* Floral bottom decoration */}
       <img
         src={bloomBottom}
