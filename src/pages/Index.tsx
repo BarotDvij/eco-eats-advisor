@@ -26,6 +26,12 @@ const Index = () => {
     setOverlay("results");
   };
 
+  const handleScanResult = (product: Tables<"food_products">) => {
+    setSelectedProduct(product);
+    setOverlay(null);
+    setTab("home");
+  };
+
   const renderTab = () => {
     switch (tab) {
       case "home":
@@ -33,6 +39,7 @@ const Index = () => {
           <HomeScreen
             onScan={() => setOverlay("scan")}
             onSelectProduct={handleSelectProduct}
+            highlightedProduct={selectedProduct}
           />
         );
       case "history":
@@ -52,7 +59,7 @@ const Index = () => {
         return (
           <ScanScreen
             onClose={() => setOverlay(null)}
-            onScanResult={handleSelectProduct}
+            onScanResult={handleScanResult}
           />
         );
       case "results":
