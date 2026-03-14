@@ -130,26 +130,41 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
           onChange={handleFileSelect}
         />
 
-        <div className="flex justify-center items-center gap-5">
-          {mode === "photo" && (
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex justify-center items-center gap-5">
+            {mode === "photo" && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => fileInputRef.current?.click()}
+                className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center"
+              >
+                <ImagePlus className="w-5 h-5 text-primary-foreground" />
+              </motion.button>
+            )}
+
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={() => fileInputRef.current?.click()}
-              className="w-12 h-12 rounded-full bg-primary-foreground/10 flex items-center justify-center"
+              onClick={handleCapture}
+              className="w-16 h-16 rounded-full border-4 border-primary-foreground/30 flex items-center justify-center"
             >
-              <ImagePlus className="w-5 h-5 text-primary-foreground" />
+              <div className="w-12 h-12 rounded-full bg-primary-foreground" />
+            </motion.button>
+
+            {mode === "photo" && <div className="w-12" />}
+          </div>
+
+          {mode === "photo" && selectedImage && (
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={handleCapture}
+              className="w-full max-w-[240px] py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold tracking-wide flex items-center justify-center gap-2"
+            >
+              <Camera className="w-4 h-4" />
+              Scan Food
             </motion.button>
           )}
-
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleCapture}
-            className="w-16 h-16 rounded-full border-4 border-primary-foreground/30 flex items-center justify-center"
-          >
-            <div className="w-12 h-12 rounded-full bg-primary-foreground" />
-          </motion.button>
-
-          {mode === "photo" && <div className="w-12" />}
         </div>
       </div>
     </motion.div>
