@@ -26,15 +26,11 @@ serve(async (req) => {
       );
     }
 
-    // Convert image to base64
+    // Convert image to base64 using Deno's native encoding
     const arrayBuffer = await imageFile.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
-    let binary = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-    const base64 = btoa(binary);
+    const { encode } = await import("https://deno.land/std@0.168.0/encoding/base64.ts");
+    const base64 = encode(bytes);
     const mimeType = imageFile.type || 'image/jpeg';
 
     // Call Gemini via Lovable AI Gateway
