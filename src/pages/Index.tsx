@@ -35,6 +35,8 @@ const Index = () => {
         );
       case "history":
         return <HistoryScreen />;
+      case "chat":
+        return <ChatScreen onClose={() => setTab("home")} />;
       case "dashboard":
         return <DashboardScreen />;
       case "settings":
