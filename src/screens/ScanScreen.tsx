@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera, Barcode, Search, Loader2, AlertCircle, ImagePlus } from "lucide-react";
 import { useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 import { lookupAndEstimate } from "@/services/barcodeLookup";
+import { estimateFromAIResult } from "@/services/imageEstimator";
 
 interface ScanScreenProps {
   onClose: () => void;
@@ -114,16 +114,12 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
         throw new Error(result.error || 'Scan failed');
       }
 
-      toast({ title: "📸 Image sent!", description: "Your food image is being analyzed by the workflow." });
-
-      // Fall back to a DB product for now
-      const { data } = await supabase
-        .from("food_products")
-        .select("*")
-        .limit(15);
-      if (data && data.length > 0) {
-        const random = data[Math.floor(Math.random() * data.length)];
-        onScanResult(random);
+      // Run the AI response through the carbon estimator
+      const product = await estimateFromAIResult(result);
+      if (product) {
+        onScanResult(product);
+      } else {
+        toast({ title: "Could not identify food", description: "Try a clearer photo or use barcode mode.", variant: "destructive" });
       }
     } catch (error) {
       console.error('Scan error:', error);
