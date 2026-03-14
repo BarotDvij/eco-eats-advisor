@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { X, Camera, Barcode, ImagePlus } from "lucide-react";
+import { X, Camera, Barcode, ImagePlus, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ScanScreenProps {
