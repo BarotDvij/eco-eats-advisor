@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { ChevronLeft, Info } from "lucide-react";
 import ScoreGauge from "../components/ScoreGauge";
 import ImpactBreakdownBar from "../components/ImpactBreakdownBar";
