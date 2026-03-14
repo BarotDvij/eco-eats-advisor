@@ -42,6 +42,10 @@ function formatVolume(co2ePerKg: number): string {
 const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenProps) => {
   const volume = formatVolume(product.total_co2e_per_kg);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
   const breakdownSegments = [
     { label: "Ingredients", percentage: product.ingredient_co2e_pct, color: "hsl(340, 45%, 65%)" },
     { label: "Transport", percentage: product.transport_co2e_pct, color: "hsl(270, 40%, 78%)" },
