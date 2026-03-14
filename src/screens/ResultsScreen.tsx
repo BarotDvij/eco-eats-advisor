@@ -80,6 +80,9 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
         </div>
       </div>
 
+      {/* Dietary conflict warning */}
+      <DietaryConflictBanner product={product} />
+
       {/* Score */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
