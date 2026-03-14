@@ -27,7 +27,30 @@ const practiceLabels: Record<string, string> = {
   factory_farmed: "Factory farmed",
 };
 
+// 1 kg CO₂ at 20°C / 1 atm ≈ 546 liters ≈ 546,000 cm³
+const CO2_CM3_PER_KG = 546_000;
+
+function formatVolume(co2ePerKg: number): { value: string; unit: string; comparison: string } {
+  const cm3 = co2ePerKg * CO2_CM3_PER_KG;
+  const liters = cm3 / 1000;
+
+  if (liters < 100) {
+    return {
+      value: Math.round(cm3).toLocaleString(),
+      unit: "cm³",
+      comparison: `≈ ${Math.round(liters)} L of CO₂ gas`,
+    };
+  }
+  return {
+    value: Math.round(liters).toLocaleString(),
+    unit: "liters",
+    comparison: `≈ ${(liters / 1000).toFixed(1)} m³ of CO₂ gas`,
+  };
+}
+
 const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenProps) => {
+  const volume = formatVolume(product.total_co2e_per_kg);
+
   const breakdownSegments = [
     { label: "Ingredients", percentage: product.ingredient_co2e_pct, color: "hsl(340, 45%, 65%)" },
     { label: "Transport", percentage: product.transport_co2e_pct, color: "hsl(270, 40%, 78%)" },
@@ -93,6 +116,9 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
         <ScoreGauge value={product.impact_score} />
         <div className="text-center text-xs text-muted-foreground mt-1">
           {product.total_co2e_per_kg} kg CO₂e per kg
+        </div>
+        <div className="text-center text-xs text-muted-foreground mt-0.5">
+          <span className="font-semibold tabular">{volume.value}</span> {volume.unit} of CO₂ gas released
         </div>
       </motion.div>
 
