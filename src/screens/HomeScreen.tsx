@@ -11,6 +11,7 @@ import bloomAccent from "@/assets/bloom-flower-accent.png";
 interface HomeScreenProps {
   onScan: () => void;
   onSelectProduct: (product: Tables<"food_products">) => void;
+  highlightedProduct?: Tables<"food_products"> | null;
 }
 
 const categoryEmoji: Record<string, string> = {
@@ -21,7 +22,7 @@ const categoryEmoji: Record<string, string> = {
 
 const weekData = [0.8, 2.1, 1.4, 3.2, 1.8, 2.4, 1.2];
 
-const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
+const HomeScreen = ({ onScan, onSelectProduct, highlightedProduct }: HomeScreenProps) => {
   const [products, setProducts] = useState<Tables<"food_products">[]>([]);
   const [search, setSearch] = useState("");
   const [filtered, setFiltered] = useState<Tables<"food_products">[]>([]);
@@ -100,7 +101,7 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="relative mb-6 z-10"
+        className="relative mb-4 z-10"
       >
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-bloom-lavender" />
         <input
@@ -111,6 +112,42 @@ const HomeScreen = ({ onScan, onSelectProduct }: HomeScreenProps) => {
           className="w-full h-11 pl-10 pr-4 bg-card rounded-2xl shadow-card text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-bloom-pink/30 bloom-border transition-all"
         />
       </motion.div>
+
+      {/* Latest scan result — directly under search */}
+      {highlightedProduct && (
+        <motion.button
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.14 }}
+          onClick={() => onSelectProduct(highlightedProduct)}
+          className="w-full bg-card rounded-2xl shadow-card bloom-border p-4 mb-5 relative z-10 text-left"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="label-caps text-muted-foreground mb-1">Latest Loaded Result</div>
+              <h2 className="text-base font-semibold tracking-tight font-display truncate">{highlightedProduct.name}</h2>
+              {highlightedProduct.brand && (
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">{highlightedProduct.brand}</p>
+              )}
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div className="rounded-xl bg-secondary p-3">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">CO₂e</p>
+              <p className="text-lg font-semibold tabular text-foreground">
+                {highlightedProduct.total_co2e_per_kg}
+                <span className="text-xs font-medium text-muted-foreground ml-1">kg/kg</span>
+              </p>
+            </div>
+            <div className="rounded-xl bg-secondary p-3">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Impact</p>
+              <p className="text-lg font-semibold tabular text-foreground">{highlightedProduct.impact_score}/100</p>
+            </div>
+          </div>
+        </motion.button>
+      )}
 
       {/* Weekly Sparkline */}
       {!search.trim() && (
