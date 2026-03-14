@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      food_products: {
+        Row: {
+          agricultural_practice:
+            | Database["public"]["Enums"]["agricultural_practice"]
+            | null
+          barcode: string | null
+          brand: string | null
+          category: string
+          created_at: string
+          id: string
+          image_url: string | null
+          impact_score: number
+          ingredient_co2e_pct: number
+          land_use_m2_per_kg: number | null
+          name: string
+          origin_country: string | null
+          packaging_co2e_pct: number
+          packaging_material: string | null
+          packaging_recyclable: boolean | null
+          total_co2e_per_kg: number
+          transport_co2e_pct: number
+          transport_distance_km: number | null
+          transport_method:
+            | Database["public"]["Enums"]["transport_method"]
+            | null
+          updated_at: string
+          water_use_liters_per_kg: number | null
+        }
+        Insert: {
+          agricultural_practice?:
+            | Database["public"]["Enums"]["agricultural_practice"]
+            | null
+          barcode?: string | null
+          brand?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          impact_score: number
+          ingredient_co2e_pct?: number
+          land_use_m2_per_kg?: number | null
+          name: string
+          origin_country?: string | null
+          packaging_co2e_pct?: number
+          packaging_material?: string | null
+          packaging_recyclable?: boolean | null
+          total_co2e_per_kg: number
+          transport_co2e_pct?: number
+          transport_distance_km?: number | null
+          transport_method?:
+            | Database["public"]["Enums"]["transport_method"]
+            | null
+          updated_at?: string
+          water_use_liters_per_kg?: number | null
+        }
+        Update: {
+          agricultural_practice?:
+            | Database["public"]["Enums"]["agricultural_practice"]
+            | null
+          barcode?: string | null
+          brand?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          impact_score?: number
+          ingredient_co2e_pct?: number
+          land_use_m2_per_kg?: number | null
+          name?: string
+          origin_country?: string | null
+          packaging_co2e_pct?: number
+          packaging_material?: string | null
+          packaging_recyclable?: boolean | null
+          total_co2e_per_kg?: number
+          transport_co2e_pct?: number
+          transport_distance_km?: number | null
+          transport_method?:
+            | Database["public"]["Enums"]["transport_method"]
+            | null
+          updated_at?: string
+          water_use_liters_per_kg?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +106,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      agricultural_practice:
+        | "conventional"
+        | "organic"
+        | "regenerative"
+        | "hydroponic"
+        | "free_range"
+        | "factory_farmed"
+      transport_method: "air" | "sea" | "rail" | "road" | "local"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +240,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      agricultural_practice: [
+        "conventional",
+        "organic",
+        "regenerative",
+        "hydroponic",
+        "free_range",
+        "factory_farmed",
+      ],
+      transport_method: ["air", "sea", "rail", "road", "local"],
+    },
   },
 } as const
