@@ -9,10 +9,11 @@ import DashboardScreen from "../screens/DashboardScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import ChatScreen from "../screens/ChatScreen";
+import DietaryPreferencesScreen from "../screens/DietaryPreferencesScreen";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Tab = "home" | "history" | "chat" | "dashboard" | "settings";
-type Overlay = null | "scan" | "results" | "alternatives";
+type Overlay = null | "scan" | "results" | "alternatives" | "dietary";
 
 const Index = () => {
   const [tab, setTab] = useState<Tab>("home");
@@ -40,7 +41,7 @@ const Index = () => {
       case "dashboard":
         return <DashboardScreen />;
       case "settings":
-        return <SettingsScreen />;
+        return <SettingsScreen onOpenDietary={() => setOverlay("dietary")} />;
     }
   };
 
@@ -69,6 +70,8 @@ const Index = () => {
             onSelectProduct={handleSelectProduct}
           />
         ) : null;
+      case "dietary":
+        return <DietaryPreferencesScreen onBack={() => setOverlay(null)} />;
       default:
         return null;
     }

@@ -1,9 +1,15 @@
 import { motion } from "framer-motion";
 import { ChevronRight, User, Bell, Globe, Shield, HelpCircle, LogOut, Sun, Moon, Type } from "lucide-react";
 import { useTheme, FONT_SIZE_OPTIONS } from "@/hooks/use-theme";
+import { useDietaryPreferences } from "@/hooks/use-dietary-preferences";
 
-const SettingsScreen = () => {
+interface Props {
+  onOpenDietary?: () => void;
+}
+
+const SettingsScreen = ({ onOpenDietary }: Props) => {
   const { theme, setTheme, fontSize, setFontSize } = useTheme();
+  const { getSummary } = useDietaryPreferences();
 
   return (
     <div className="min-h-screen pb-24 px-5 pt-14">
@@ -107,20 +113,23 @@ const SettingsScreen = () => {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
           <div className="label-caps text-muted-foreground mb-2">Preferences</div>
           <div className="bg-card rounded-xl shadow-card overflow-hidden divide-y divide-border">
-            {[
-              { icon: Globe, label: "Region", detail: "United States" },
-              { icon: Shield, label: "Dietary Restrictions", detail: "None" },
-            ].map((item) => (
-              <button
-                key={item.label}
-                className="w-full flex items-center gap-3 p-3.5 text-left hover:bg-secondary/50 transition-colors"
-              >
-                <item.icon className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium flex-1">{item.label}</span>
-                {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-            ))}
+            <button
+              className="w-full flex items-center gap-3 p-3.5 text-left hover:bg-secondary/50 transition-colors"
+            >
+              <Globe className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium flex-1">Region</span>
+              <span className="text-xs text-muted-foreground">United States</span>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button
+              onClick={onOpenDietary}
+              className="w-full flex items-center gap-3 p-3.5 text-left hover:bg-secondary/50 transition-colors"
+            >
+              <Shield className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium flex-1">Dietary Restrictions</span>
+              <span className="text-xs text-muted-foreground">{getSummary()}</span>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
           </div>
         </motion.div>
 
