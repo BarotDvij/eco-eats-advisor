@@ -11,6 +11,16 @@ interface ScanScreenProps {
 
 const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [mode, setMode] = useState<"barcode" | "photo">("barcode");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setSelectedImage(url);
+    }
+  };
 
   const handleCapture = async () => {
     // Simulate scanning — pick a random product from DB
