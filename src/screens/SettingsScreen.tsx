@@ -156,7 +156,7 @@ const SettingsScreen = ({ onOpenDietary }: Props) => {
       </div>
 
       <div className="mt-8 text-center">
-        <div className="label-caps text-muted-foreground">Trace v1.0</div>
+        <div className="label-caps text-muted-foreground">Eco Eats v1.0</div>
       </div>
     </div>
   );
