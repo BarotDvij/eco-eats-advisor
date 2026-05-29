@@ -40,7 +40,7 @@ export async function lookupAndEstimate(barcode: string): Promise<LookupResult> 
     }
 
     // 3. Estimate carbon footprint
-    const estimate = estimateCarbon(offProduct);
+    const estimate = await estimateCarbon(offProduct);
     const row = buildFoodProductRow(offProduct, estimate);
 
     // 4. Insert into Supabase so it's cached for next time & shows in search/alternatives

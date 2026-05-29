@@ -8,75 +8,7 @@ import {
   getImageUrl,
   isOrganic,
 } from "./openFoodFacts";
-
-// --- Emission factors (kg CO₂e per kg of food) ---
-// Sources: Our World in Data, Poore & Nemecek 2018, IPCC
-const CATEGORY_EMISSIONS: Record<string, number> = {
-  beef: 27.0,
-  lamb: 39.0,
-  pork: 7.6,
-  chicken: 6.9,
-  turkey: 5.7,
-  fish: 6.0,
-  seafood: 11.9,
-  shrimp: 18.0,
-  salmon: 11.9,
-  tuna: 6.1,
-  eggs: 4.7,
-  milk: 3.2,
-  cheese: 13.5,
-  yogurt: 2.5,
-  butter: 11.5,
-  cream: 5.6,
-  "ice cream": 4.0,
-  coffee: 5.0,
-  tea: 1.2,
-  chocolate: 4.6,
-  cocoa: 4.6,
-  rice: 4.0,
-  pasta: 1.6,
-  bread: 1.3,
-  wheat: 1.4,
-  oats: 1.0,
-  corn: 1.2,
-  sugar: 2.6,
-  "palm oil": 7.6,
-  "olive oil": 5.4,
-  "soy oil": 2.0,
-  soy: 2.0,
-  tofu: 2.0,
-  lentils: 0.9,
-  beans: 0.8,
-  chickpeas: 0.8,
-  peas: 0.4,
-  nuts: 2.3,
-  peanuts: 2.5,
-  almonds: 3.5,
-  avocado: 2.5,
-  tomato: 1.4,
-  potato: 0.5,
-  onion: 0.4,
-  apple: 0.4,
-  banana: 0.7,
-  orange: 0.5,
-  berries: 1.1,
-  vegetables: 0.7,
-  fruit: 0.7,
-  juice: 1.5,
-  soda: 0.8,
-  water: 0.2,
-  beer: 1.2,
-  wine: 1.6,
-  spirits: 2.7,
-  snacks: 2.5,
-  cereal: 1.8,
-  "plant milk": 0.9,
-  "oat milk": 0.9,
-  "soy milk": 1.0,
-  "almond milk": 1.2,
-};
-
-const DEFAULT_EMISSION = 2.5;
+import { ensureFactorsLoaded, getEmissionFactor } from "./emissionFactors";
 
 // --- Transport distance estimates by origin region (km from UK) ---
 const REGION_DISTANCES: Record<string, { km: number; method: string }> = {
@@ -160,7 +92,7 @@ const PACKAGING_EMISSIONS: Record<string, { co2: number; recyclable: boolean }> 
 
 const DEFAULT_PACKAGING = { co2: 0.15, recyclable: false };
 
-function matchCategory(tags: string[]): { category: string; co2PerKg: number } {
+function matchCategory(tags: string[]): string {
   const normalized = tags.map((t) =>
     t.replace("en:", "").replace(/-/g, " ").toLowerCase()
   );
@@ -181,12 +113,10 @@ function matchCategory(tags: string[]): { category: string; co2PerKg: number } {
   ];
 
   for (const key of prioritized) {
-    if (joined.includes(key)) {
-      return { category: key, co2PerKg: CATEGORY_EMISSIONS[key] };
-    }
+    if (joined.includes(key)) return key;
   }
 
-  return { category: "other", co2PerKg: DEFAULT_EMISSION };
+  return "other";
 }
 
 function mapToAppCategory(foodCategory: string): string {
@@ -312,14 +242,18 @@ const LAND_USE: Record<string, number> = {
   lentils: 7, tofu: 2.2,
 };
 
-export function estimateCarbon(product: OFFProduct): CarbonEstimate {
+export async function estimateCarbon(product: OFFProduct): Promise<CarbonEstimate> {
+  await ensureFactorsLoaded();
+
   const categoryTags = [
     ...(product.categories_tags || []),
     ...(product.categories ? [product.categories] : []),
     ...(product.ingredients_text ? [product.ingredients_text] : []),
   ];
 
-  const { category: foodCategory, co2PerKg: ingredientCo2 } = matchCategory(categoryTags);
+  const foodCategory = matchCategory(categoryTags);
+  const factor = getEmissionFactor(foodCategory);
+  const ingredientCo2 = factor.co2ePerKg;
   const appCategory = mapToAppCategory(foodCategory);
   const origin = getOriginCountry(product);
   const transport = resolveTransport(origin);
@@ -361,8 +295,8 @@ export function estimateCarbon(product: OFFProduct): CarbonEstimate {
     packagingMaterial: packaging.material,
     packagingRecyclable: packaging.recyclable,
     agriculturalPractice: organic ? "organic" : "conventional",
-    waterUseLitersPerKg: WATER_USE[foodCategory] ?? null,
-    landUseM2PerKg: LAND_USE[foodCategory] ?? null,
+    waterUseLitersPerKg: factor.waterUseLitersPerKg ?? WATER_USE[foodCategory] ?? null,
+    landUseM2PerKg: factor.landUseM2PerKg ?? LAND_USE[foodCategory] ?? null,
   };
 }
 

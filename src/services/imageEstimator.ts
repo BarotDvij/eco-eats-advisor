@@ -86,7 +86,7 @@ export async function estimateFromAIResult(
       ai.ingredients_text || ai.ingredients?.join(", ") || foodName,
   };
 
-  const estimate = estimateCarbon(syntheticProduct);
+  const estimate = await estimateCarbon(syntheticProduct);
   const row = buildFoodProductRow(syntheticProduct, estimate);
 
   // Try to upsert if we have a real barcode, otherwise just insert
