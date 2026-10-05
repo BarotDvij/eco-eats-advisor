@@ -11,7 +11,9 @@ import {
 import { ensureFactorsLoaded, getEmissionFactor } from "./emissionFactors";
 
 // --- Transport distance estimates by origin region (km from UK) ---
-const REGION_DISTANCES: Record<string, { km: number; method: string }> = {
+type TransportMethod = "air" | "sea" | "rail" | "road" | "local";
+
+const REGION_DISTANCES: Record<string, { km: number; method: TransportMethod }> = {
   "united kingdom": { km: 100, method: "road" },
   uk: { km: 100, method: "road" },
   ireland: { km: 400, method: "sea" },
@@ -53,7 +55,7 @@ const REGION_DISTANCES: Record<string, { km: number; method: string }> = {
   denmark: { km: 900, method: "sea" },
 };
 
-const DEFAULT_DISTANCE = { km: 5000, method: "sea" as const };
+const DEFAULT_DISTANCE = { km: 5000, method: "sea" as TransportMethod };
 
 // Transport emission factors (kg CO₂ per tonne per km)
 const TRANSPORT_FACTORS: Record<string, number> = {
@@ -142,22 +144,14 @@ function mapToAppCategory(foodCategory: string): string {
   return mapping[foodCategory] || "other";
 }
 
-function resolveTransport(origin: string | null): {
-  method: "air" | "sea" | "rail" | "road" | "local";
-  km: number;
-} {
-  if (!origin) return { method: "sea", km: DEFAULT_DISTANCE.km };
+function resolveTransport(origin: string | null): { method: TransportMethod; km: number } {
+  if (!origin) return DEFAULT_DISTANCE;
 
   const normalized = origin.toLowerCase().trim();
   for (const [region, info] of Object.entries(REGION_DISTANCES)) {
-    if (normalized.includes(region)) {
-      return {
-        method: info.method as "air" | "sea" | "rail" | "road" | "local",
-        km: info.km,
-      };
-    }
+    if (normalized.includes(region)) return info;
   }
-  return { method: "sea", km: DEFAULT_DISTANCE.km };
+  return DEFAULT_DISTANCE;
 }
 
 function resolvePackaging(tags: string[]): {
@@ -214,12 +208,12 @@ export interface CarbonEstimate {
   impactScore: number;
   foodCategory: string;
   appCategory: string;
-  transportMethod: "air" | "sea" | "rail" | "road" | "local";
+  transportMethod: TransportMethod;
   transportDistanceKm: number;
   originCountry: string | null;
   packagingMaterial: string;
   packagingRecyclable: boolean;
-  agriculturalPractice: string;
+  agriculturalPractice: "organic" | "conventional";
   waterUseLitersPerKg: number | null;
   landUseM2PerKg: number | null;
 }
@@ -320,13 +314,7 @@ export function buildFoodProductRow(
     origin_country: estimate.originCountry,
     packaging_material: estimate.packagingMaterial,
     packaging_recyclable: estimate.packagingRecyclable,
-    agricultural_practice: estimate.agriculturalPractice as
-      | "conventional"
-      | "organic"
-      | "regenerative"
-      | "hydroponic"
-      | "free_range"
-      | "factory_farmed",
+    agricultural_practice: estimate.agriculturalPractice,
     water_use_liters_per_kg: estimate.waterUseLitersPerKg,
     land_use_m2_per_kg: estimate.landUseM2PerKg,
   };

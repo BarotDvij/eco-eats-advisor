@@ -20,12 +20,12 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem("app-theme") as Theme | null;
     return stored || "light";
   });
 
-  const [fontSize, setFontSizeState] = useState<FontSize>(() => {
+  const [fontSize, setFontSize] = useState<FontSize>(() => {
     const stored = localStorage.getItem("app-font-size") as FontSize | null;
     return stored || "default";
   });
@@ -40,9 +40,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--font-size-scale", String(FONT_SCALE[fontSize]));
     localStorage.setItem("app-font-size", fontSize);
   }, [fontSize]);
-
-  const setTheme = (t: Theme) => setThemeState(t);
-  const setFontSize = (s: FontSize) => setFontSizeState(s);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, fontSize, setFontSize }}>

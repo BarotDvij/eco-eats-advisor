@@ -7,8 +7,8 @@
  *  the carbon estimator so the on-stage demo works instantly
  *  and reliably regardless of network conditions.
  *
- *  Remove this file (and its imports in barcodeLookup.ts and
- *  imageEstimator.ts) once real API/estimation is sufficient.
+ *  Remove this file (and its import in barcodeLookup.ts)
+ *  once real API/estimation is sufficient.
  * ============================================================
  */
 
@@ -53,34 +53,6 @@ export const DEMO_BARCODES: Record<string, Tables<"food_products">> = {
   "55000008815": NESCAFE_RICH,    // without leading zero
   "055000132152": NESCAFE_RICH,   // 475g tin (same product, different size)
 };
-
-// AI image recognition: if Gemini returns any of these keywords,
-// we return the demo product instead of estimating from scratch
-const AI_KEYWORDS = [
-  "nescafe",
-  "nescafé",
-  "nescafe rich",
-  "nescafé rich",
-  "instant coffee",
-];
-
-/**
- * Check if the AI response matches our demo product.
- * Pass in the raw response object from the Gemini/n8n pipeline.
- */
-export function matchDemoFromAI(raw: unknown): Tables<"food_products"> | null {
-  if (!raw || typeof raw !== "object") return null;
-
-  const text = JSON.stringify(raw).toLowerCase();
-
-  for (const keyword of AI_KEYWORDS) {
-    if (text.includes(keyword)) {
-      return NESCAFE_RICH;
-    }
-  }
-
-  return null;
-}
 
 /**
  * Check if a barcode matches a demo product.

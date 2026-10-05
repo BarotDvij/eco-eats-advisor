@@ -2,13 +2,12 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import type { OFFProduct } from "./openFoodFacts";
 import { estimateCarbon, buildFoodProductRow } from "./carbonEstimator";
-import { matchDemoFromAI } from "./demoProducts";
 
 /**
  * Expected shape from the Gemini/n8n AI pipeline.
  * This is flexible — we extract whatever fields are present.
  */
-export interface AIFoodResult {
+interface AIFoodResult {
   food?: string;
   name?: string;
   product_name?: string;
@@ -21,7 +20,6 @@ export interface AIFoodResult {
   origin_country?: string;
   packaging?: string;
   barcode?: string;
-  confidence?: number;
 }
 
 function normalizeAIResult(raw: unknown): AIFoodResult {
@@ -46,7 +44,6 @@ function normalizeAIResult(raw: unknown): AIFoodResult {
     origin: asString(data.origin) || asString(data.origin_country),
     packaging: asString(data.packaging),
     barcode: asString(data.barcode),
-    confidence: typeof data.confidence === "number" ? data.confidence : undefined,
   };
 }
 
@@ -67,8 +64,6 @@ function asStringArray(v: unknown): string[] | undefined {
 export async function estimateFromAIResult(
   raw: unknown
 ): Promise<Tables<"food_products"> | null> {
-  // Skip demo matching — use real AI results only
-
   const ai = normalizeAIResult(raw);
   const foodName = ai.food || ai.name || ai.product_name;
   if (!foodName) return null;

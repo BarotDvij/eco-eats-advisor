@@ -12,11 +12,8 @@ const RELEVANT_FIELDS = [
   "ingredients_text",
   "image_url",
   "image_front_url",
-  "ecoscore_grade",
-  "ecoscore_score",
   "labels_tags",
   "manufacturing_places",
-  "countries_tags",
   "code",
 ].join(",");
 
@@ -33,14 +30,11 @@ export interface OFFProduct {
   ingredients_text?: string;
   image_url?: string;
   image_front_url?: string;
-  ecoscore_grade?: string;
-  ecoscore_score?: number;
   labels_tags?: string[];
   manufacturing_places?: string;
-  countries_tags?: string[];
 }
 
-export interface OFFResponse {
+interface OFFResponse {
   code: string;
   product?: OFFProduct;
   status: number;
@@ -48,10 +42,7 @@ export interface OFFResponse {
 }
 
 export async function lookupBarcode(barcode: string): Promise<OFFProduct | null> {
-  const cleaned = barcode.replace(/\s+/g, "").trim();
-  if (!cleaned) return null;
-
-  const url = `${OFF_API_BASE}/product/${encodeURIComponent(cleaned)}?fields=${RELEVANT_FIELDS}`;
+  const url = `${OFF_API_BASE}/product/${encodeURIComponent(barcode)}?fields=${RELEVANT_FIELDS}`;
 
   const response = await fetch(url, {
     headers: {

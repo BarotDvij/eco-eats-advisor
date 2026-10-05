@@ -7,15 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
  */
 
 export interface EmissionFactor {
-  category: string;
   co2ePerKg: number;
-  agriculturePct: number;
-  processingPct: number;
-  packagingPct: number;
-  transportPct: number;
   waterUseLitersPerKg: number | null;
   landUseM2PerKg: number | null;
-  source: string;
 }
 
 // Hardcoded fallback — used only if the Supabase fetch fails (offline / demo)
@@ -38,19 +32,14 @@ const FALLBACK_FACTORS: Record<string, number> = {
 
 const DEFAULT_CO2E = 2.5;
 
-let cache: Map<string, EmissionFactor> | null = null;
+const cache = new Map<string, EmissionFactor>();
 let loadPromise: Promise<void> | null = null;
 
 interface EmissionFactorRow {
   category: string;
   co2e_per_kg: number;
-  agriculture_pct: number;
-  processing_pct: number;
-  packaging_pct: number;
-  transport_pct: number;
   water_use_liters_per_kg: number | null;
   land_use_m2_per_kg: number | null;
-  source: string;
 }
 
 async function loadFactors(): Promise<void> {
@@ -63,28 +52,18 @@ async function loadFactors(): Promise<void> {
 
     if (error || !data) {
       console.warn("emission_factors fetch failed, using fallback:", error);
-      cache = new Map();
       return;
     }
 
-    const map = new Map<string, EmissionFactor>();
     for (const row of data as EmissionFactorRow[]) {
-      map.set(row.category, {
-        category: row.category,
+      cache.set(row.category, {
         co2ePerKg: Number(row.co2e_per_kg),
-        agriculturePct: Number(row.agriculture_pct),
-        processingPct: Number(row.processing_pct),
-        packagingPct: Number(row.packaging_pct),
-        transportPct: Number(row.transport_pct),
         waterUseLitersPerKg: row.water_use_liters_per_kg != null ? Number(row.water_use_liters_per_kg) : null,
         landUseM2PerKg: row.land_use_m2_per_kg != null ? Number(row.land_use_m2_per_kg) : null,
-        source: row.source,
       });
     }
-    cache = map;
   } catch (err) {
     console.warn("emission_factors load error, using fallback:", err);
-    cache = new Map();
   }
 }
 
@@ -92,12 +71,8 @@ async function loadFactors(): Promise<void> {
  * Ensure the emission factor cache is loaded. Safe to call repeatedly —
  * the network fetch only happens once.
  */
-export async function ensureFactorsLoaded(): Promise<void> {
-  if (cache) return;
-  if (!loadPromise) {
-    loadPromise = loadFactors();
-  }
-  await loadPromise;
+export function ensureFactorsLoaded(): Promise<void> {
+  return (loadPromise ??= loadFactors());
 }
 
 /**
@@ -105,19 +80,11 @@ export async function ensureFactorsLoaded(): Promise<void> {
  * if available, otherwise the hardcoded fallback, otherwise the default.
  */
 export function getEmissionFactor(category: string): EmissionFactor {
-  const fromDb = cache?.get(category);
-  if (fromDb) return fromDb;
-
-  const fallbackCo2e = FALLBACK_FACTORS[category] ?? DEFAULT_CO2E;
-  return {
-    category,
-    co2ePerKg: fallbackCo2e,
-    agriculturePct: 70,
-    processingPct: 12,
-    packagingPct: 10,
-    transportPct: 8,
-    waterUseLitersPerKg: null,
-    landUseM2PerKg: null,
-    source: "fallback",
-  };
+  return (
+    cache.get(category) ?? {
+      co2ePerKg: FALLBACK_FACTORS[category] ?? DEFAULT_CO2E,
+      waterUseLitersPerKg: null,
+      landUseM2PerKg: null,
+    }
+  );
 }

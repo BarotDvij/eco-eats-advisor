@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera, Barcode, Search, Loader2, AlertCircle, ImagePlus } from "lucide-react";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 import { lookupAndEstimate } from "@/services/barcodeLookup";
 import { estimateFromAIResult } from "@/services/imageEstimator";
@@ -15,7 +14,6 @@ interface ScanScreenProps {
 type ScanState =
   | { phase: "idle" }
   | { phase: "searching"; barcode: string }
-  | { phase: "analyzing" }
   | { phase: "not_found"; barcode: string }
   | { phase: "error"; message: string };
 
@@ -34,7 +32,6 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const [barcodeInput, setBarcodeInput] = useState("");
   const [scanState, setScanState] = useState<ScanState>({ phase: "idle" });
   const [analysisStep, setAnalysisStep] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Photo mode state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -139,7 +136,6 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   }, [barcodeInput, onScanResult]);
 
   const handleBarcodeDetected = useCallback((code: string) => {
-    toast({ title: "Barcode detected", description: code });
     handleBarcodeLookup(code);
   }, [handleBarcodeLookup]);
 
@@ -164,6 +160,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
   const handleScanFood = async () => {
     if (!selectedFile) return;
     setIsScanning(true);
+    setPhotoCameraError(null);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 25000);
@@ -196,11 +193,7 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
       if (product) {
         onScanResult(product);
       } else {
-        toast({
-          title: "Could not identify food",
-          description: "Try a clearer photo or use barcode mode.",
-          variant: "destructive",
-        });
+        setPhotoCameraError("Could not identify food. Try a clearer photo or use barcode mode.");
       }
     } catch (error) {
       console.error("Scan error:", error);
@@ -208,14 +201,14 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
         error instanceof DOMException && error.name === "AbortError"
           ? "Scan timed out. Please try again with a clearer photo."
           : "Could not scan image. Please try again.";
-      toast({ title: "Scan failed", description: message, variant: "destructive" });
+      setPhotoCameraError(message);
     } finally {
       clearTimeout(timeoutId);
       setIsScanning(false);
     }
   };
 
-  const isLoading = scanState.phase === "searching" || scanState.phase === "analyzing";
+  const isLoading = scanState.phase === "searching";
 
   return (
     <motion.div
@@ -285,7 +278,6 @@ const ScanScreen = ({ onClose, onScanResult }: ScanScreenProps) => {
             <div className="w-full max-w-[280px] relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-foreground/40" />
               <input
-                ref={inputRef}
                 type="text"
                 inputMode="numeric"
                 value={barcodeInput}
