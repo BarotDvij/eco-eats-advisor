@@ -32,8 +32,8 @@ serve(async (req) => {
 
     const productContext = products
       .map(
-        (p: any) =>
-          `• ${p.name} (${p.brand || "no brand"}, ${p.category}): ${p.total_co2e_per_kg} kg CO₂e/kg (impact score: ${p.impact_score}/100). ` +
+        (p) =>
+          `• ${p.name} (${p.brand || "no brand"}, ${p.category}): ${p.total_co2e_per_kg} kg CO₂e/kg (impact score: ${p.impact_score}/10). ` +
           `Breakdown: ingredients ${p.ingredient_co2e_pct}%, transport ${p.transport_co2e_pct}%, packaging ${p.packaging_co2e_pct}%. ` +
           `Agricultural practice: ${p.agricultural_practice || "unknown"}. ` +
           `Transport: ${p.transport_method || "unknown"}, ${p.transport_distance_km ? p.transport_distance_km + " km" : "distance unknown"}, origin: ${p.origin_country || "unknown"}. ` +

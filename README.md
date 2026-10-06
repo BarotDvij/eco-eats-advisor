@@ -54,7 +54,7 @@ cd eco-eats-advisor
 bun install
 ```
 
-Create a `.env` file:
+Copy `.env.example` to `.env` and fill in your Supabase project details:
 
 ```sh
 VITE_SUPABASE_URL=https://<project-id>.supabase.co

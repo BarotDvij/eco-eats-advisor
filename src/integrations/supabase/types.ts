@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      emission_factors: {
+        Row: {
+          agriculture_pct: number
+          category: string
+          co2e_per_kg: number
+          created_at: string
+          data_quality_rating: number | null
+          display_name: string
+          id: string
+          land_use_m2_per_kg: number | null
+          packaging_pct: number
+          processing_pct: number
+          source: string
+          transport_pct: number
+          updated_at: string
+          water_use_liters_per_kg: number | null
+        }
+        Insert: {
+          agriculture_pct?: number
+          category: string
+          co2e_per_kg: number
+          created_at?: string
+          data_quality_rating?: number | null
+          display_name: string
+          id?: string
+          land_use_m2_per_kg?: number | null
+          packaging_pct?: number
+          processing_pct?: number
+          source?: string
+          transport_pct?: number
+          updated_at?: string
+          water_use_liters_per_kg?: number | null
+        }
+        Update: {
+          agriculture_pct?: number
+          category?: string
+          co2e_per_kg?: number
+          created_at?: string
+          data_quality_rating?: number | null
+          display_name?: string
+          id?: string
+          land_use_m2_per_kg?: number | null
+          packaging_pct?: number
+          processing_pct?: number
+          source?: string
+          transport_pct?: number
+          updated_at?: string
+          water_use_liters_per_kg?: number | null
+        }
+        Relationships: []
+      }
       food_products: {
         Row: {
           agricultural_practice:

@@ -35,27 +35,18 @@ const DEFAULT_CO2E = 2.5;
 const cache = new Map<string, EmissionFactor>();
 let loadPromise: Promise<void> | null = null;
 
-interface EmissionFactorRow {
-  category: string;
-  co2e_per_kg: number;
-  water_use_liters_per_kg: number | null;
-  land_use_m2_per_kg: number | null;
-}
-
 async function loadFactors(): Promise<void> {
   try {
-    // The emission_factors table isn't in the generated Supabase types yet,
-    // so we query it with a loose cast. Regenerate types to remove this.
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("emission_factors")
-      .select("*");
+      .select("category, co2e_per_kg, water_use_liters_per_kg, land_use_m2_per_kg");
 
     if (error || !data) {
       console.warn("emission_factors fetch failed, using fallback:", error);
       return;
     }
 
-    for (const row of data as EmissionFactorRow[]) {
+    for (const row of data) {
       cache.set(row.category, {
         co2ePerKg: Number(row.co2e_per_kg),
         waterUseLitersPerKg: row.water_use_liters_per_kg != null ? Number(row.water_use_liters_per_kg) : null,

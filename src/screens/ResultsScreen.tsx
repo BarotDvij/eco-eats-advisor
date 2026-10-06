@@ -154,13 +154,13 @@ const ResultsScreen = ({ product, onBack, onViewAlternatives }: ResultsScreenPro
         className="bg-card rounded-2xl shadow-card bloom-border p-4 mb-6"
       >
         <NutritionFacts
-          calories={(product as any).calories_per_100g}
-          protein={(product as any).protein_g}
-          carbs={(product as any).carbs_g}
-          fat={(product as any).fat_g}
-          fiber={(product as any).fiber_g}
-          sugar={(product as any).sugar_g}
-          sodium={(product as any).sodium_mg}
+          calories={product.calories_per_100g}
+          protein={product.protein_g}
+          carbs={product.carbs_g}
+          fat={product.fat_g}
+          fiber={product.fiber_g}
+          sugar={product.sugar_g}
+          sodium={product.sodium_mg}
         />
       </motion.div>
       <div className="flex gap-3 relative z-10">
