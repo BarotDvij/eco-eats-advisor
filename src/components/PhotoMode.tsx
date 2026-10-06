@@ -38,11 +38,6 @@ const PhotoMode = ({ header, modeToggle, onScanResult }: PhotoModeProps) => {
 
       streamRef.current = stream;
       setCameraActive(true);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
     } catch (err) {
       console.error("Photo camera error:", err);
       setError("Could not open camera. Please allow camera permission.");
@@ -76,6 +71,11 @@ const PhotoMode = ({ header, modeToggle, onScanResult }: PhotoModeProps) => {
   };
 
   useEffect(() => stopCamera, [stopCamera]);
+
+  // The <video> only mounts once cameraActive is true, so attach the stream after that render.
+  useEffect(() => {
+    if (cameraActive && videoRef.current) videoRef.current.srcObject = streamRef.current;
+  }, [cameraActive]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
