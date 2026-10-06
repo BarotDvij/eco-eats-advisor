@@ -8,6 +8,9 @@ Eco Eats is a mobile-first web app that scans a product's barcode or a photo of 
 <p align="center"><img src="docs/screenshot.png" alt="Eco Eats app screens" width="320"></p>
 -->
 
+<img width="236" height="541" alt="image" src="https://github.com/user-attachments/assets/7ccc5d00-51a6-49c4-b823-919cc0571521" />
+
+
 ## Features
 
 - **Barcode scanning**: scan with the phone camera or type the number in. Product data comes from [Open Food Facts](https://world.openfoodfacts.org/).
