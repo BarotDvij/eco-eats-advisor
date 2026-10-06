@@ -4,9 +4,6 @@
 
 Eco Eats is a mobile-first web app that scans a product's barcode or a photo of a meal and shows its estimated carbon footprint. It also breaks down where the emissions come from and suggests lower-impact alternatives. Built for the **Bloom Designathon**.
 
-<!-- Add a screenshot: save it as docs/screenshot.png, then uncomment the line below.
-<p align="center"><img src="docs/screenshot.png" alt="Eco Eats app screens" width="320"></p>
--->
 <p align="center">
   <img width="236" height="541" alt="image" src="https://github.com/user-attachments/assets/7ccc5d00-51a6-49c4-b823-919cc0571521" />
 </p>
